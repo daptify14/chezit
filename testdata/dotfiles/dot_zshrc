@@ -1,0 +1,15 @@
+# ~/.zshrc -- managed by chezmoi
+export EDITOR="code --wait"
+export PATH="$HOME/.local/bin:$HOME/go/bin:$PATH"
+export GOPATH="$HOME/go"
+
+# History
+HISTSIZE=10000
+SAVEHIST=10000
+
+# Aliases
+alias gs='git status'
+alias gd='git diff'
+alias ll='ls -la'
+
+command -v starship &>/dev/null && eval "$(starship init zsh)"

@@ -1,0 +1,7 @@
+icons: nerdfont
+panel: show
+mode: write
+commit_presets:
+  - "feat: update dotfiles"
+  - "fix: correct config"
+  - "chore: sync changes"

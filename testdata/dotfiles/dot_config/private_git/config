@@ -1,0 +1,11 @@
+# Git config -- managed by chezmoi
+[user]
+    name = Demo User
+    email = demo@example.com
+[core]
+    editor = code --wait
+    autocrlf = input
+[init]
+    defaultBranch = main
+[pull]
+    rebase = true

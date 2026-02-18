@@ -1,0 +1,25 @@
+ chezit > Status
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ 1 Status    2 Files    3 Info    4 Commands
+╭─────────────────────────────────────────────────────────────────╮  │ Preview
+│ / to search files...                                            │  │   Select an item to preview
+╰─────────────────────────────────────────────────────────────────╯
+  ⣾  Loading git status...
+  ▼ Incoming [f fetch] (0)
+  ▼ Local Drift (2)
+  > MM    ~/.bashrc
+    A·  ~/.zshrc
+  ▼ Unstaged (0)
+  ▼ Staged (0)
+  ▼ Unpushed Commits (0)
+
+  .bashrc
+> View Diff
+  Re-add to Source
+  Apply File
+  ──────────
+  Apply All
+  Update (pull + apply)
+  Refresh
+  2 drift | 0 unstaged | 0 staged | 3/7 | diverged
+↑/↓ navigate  enter select  esc back

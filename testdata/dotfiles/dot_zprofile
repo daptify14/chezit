@@ -1,0 +1,8 @@
+# ~/.zprofile -- managed by chezmoi
+
+# Homebrew (Apple Silicon)
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
+# Go
+export GOPATH="$HOME/go"
+export PATH="$GOPATH/bin:$PATH"

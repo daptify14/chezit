@@ -1,0 +1,36 @@
+
+
+
+
+        ╭──────────────────────────────────────────────────────────────────────────────────────────────────────╮
+        │                                                                                                      │
+        │    Global                                                                                            │
+        │    ───────────────────────────                                                                       │
+        │    ↑/↓  Navigate                                                                                     │
+        │    Tab  Switch tabs                                                                                  │
+        │    1-4  Jump to tab                                                                                  │
+        │    ?    Open/close keys                                                                              │
+        │    m    Mouse on (wheel/click)                                                                       │
+        │    esc  Back                                                                                         │
+        │    q    Quit                                                                                         │
+        │                                                                                                      │
+        │    Files                                                                                             │
+        │    ────────────────────────────                                                                      │
+        │    /      Filter/search                                                                              │
+        │    enter  Open/toggle directory                                                                      │
+        │    a      Actions menu                                                                               │
+        │    t      Tree/flat toggle                                                                           │
+        │    f      View/filter overlay                                                                        │
+        │    r      Refresh                                                                                    │
+        │                                                                                                      │
+        │    Preview                                                                                           │
+        │    ─────────────────────────────────────────────                                                     │
+        │    p    Show/hide preview                                                                            │
+        │    l/→  Focus preview                                                                                │
+        │    h/←  Back to list                                                                                 │
+        │    v    Switch diff/content                                                                          │
+        │    Preview appears when terminal is wide enough.                                                     │
+        │                                                                                                      │
+        │    ↑/↓ scroll | ^d/^u half-page | g/G top/bottom | ?/esc close                                       │
+        │                                                                                                      │
+        ╰──────────────────────────────────────────────────────────────────────────────────────────────────────╯

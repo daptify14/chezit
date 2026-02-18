@@ -1,0 +1,110 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    # Bug detection
+    - durationcheck
+    - errcheck
+    - errorlint
+    - intrange
+    - makezero
+    - nilerr
+    - predeclared
+    - unconvert
+    - wastedassign
+
+    # Security
+    - asciicheck
+    - bidichk
+    - gosec
+
+    # Style & consistency
+    - errname
+    - gocritic
+    - misspell
+    - modernize
+    - nakedret
+    - nolintlint
+    - perfsprint
+    - revive
+    - unparam
+    - unused
+    - usestdlibvars
+    - whitespace
+
+    # Static analysis
+    - govet
+    - staticcheck
+
+    # Tests
+    - thelper
+    - usetesting
+
+  settings:
+    errcheck:
+      check-type-assertions: true
+
+    gosec:
+      excludes:
+        - G204 # subprocess — intentionally shells out to chezmoi
+        - G301 # directory permissions — 0o755 is standard for user-facing dirs
+        - G304 # file path from variable — expected in file manager
+        - G306 # file permissions — test scripts need execute bit
+
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment # too strict for TUI structs
+
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - style
+        - performance
+      disabled-checks:
+        - filepathJoin    # false positive on absolute paths in test assertions
+        - hugeParam       # TUI models can be large structs, pointer receivers handle this
+        - unnamedResult   # named returns add noise in short utility functions
+
+    nakedret:
+      max-func-lines: 0
+
+    nolintlint:
+      require-specific: true
+
+    perfsprint:
+      strconcat: false
+
+    revive:
+      rules:
+        - name: blank-imports
+        - name: context-as-argument
+        - name: dot-imports
+        - name: error-return
+        - name: error-strings
+        - name: error-naming
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: range
+        - name: receiver-naming
+        - name: time-naming
+        - name: unexported-return
+        - name: var-declaration
+        - name: var-naming
+
+    usetesting:
+      os-temp-dir: true
+
+formatters:
+  enable:
+    - gofumpt
+    - gci
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/daptify14/chezit)

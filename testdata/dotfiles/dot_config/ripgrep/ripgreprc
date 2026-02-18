@@ -1,0 +1,7 @@
+--smart-case
+--hidden
+--glob=!.git
+--glob=!node_modules
+--glob=!vendor
+--max-columns=200
+--max-columns-preview

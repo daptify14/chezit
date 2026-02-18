@@ -1,0 +1,9 @@
+[data]
+    name = "Demo User"
+    email = "demo@example.com"
+
+{{- if lookPath "code" }}
+[edit]
+    command = "code"
+    args = ["--new-window", "--wait"]
+{{- end }}

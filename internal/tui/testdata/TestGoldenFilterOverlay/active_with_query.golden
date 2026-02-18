@@ -1,0 +1,13 @@
+ chezit > Files
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ 1 Status    2 Files    3 Info    4 Commands
+╭─────────────────────────────────────────────────────────────────╮  │ Preview
+│ > nvim                                                          │  │   Select an item to preview
+╰─────────────────────────────────────────────────────────────────╯
+  3 files in 3 directories
+  ▼ .config [2 files]
+  └── ▶ nvim [2 files]
+  .bashrc
+  .config [view:managed] [filter:all]
+↑/↓ nav  enter open/toggle  a actions  t flat  f view/filter  r refresh  v switch diff/content  l/→ focus preview
+p hide preview  ? keys  esc back

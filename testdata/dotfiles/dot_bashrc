@@ -1,0 +1,8 @@
+# ~/.bashrc -- managed by chezmoi
+export EDITOR="code --wait"
+export PATH="$HOME/.local/bin:$PATH"
+
+alias gs='git status'
+alias gd='git diff'
+
+command -v starship &>/dev/null && eval "$(starship init bash)"

@@ -1,0 +1,32 @@
+
+
+
+
+
+
+
+        ╭──────────────────────────────────────────────────────────────────────────────────────────────────────╮
+        │                                                                                                      │
+        │    Global                                                                                            │
+        │    ───────────────────────────                                                                       │
+        │    ↑/↓  Navigate                                                                                     │
+        │    Tab  Switch tabs                                                                                  │
+        │    1-4  Jump to tab                                                                                  │
+        │    ?    Open/close keys                                                                              │
+        │    m    Mouse on (wheel/click)                                                                       │
+        │    esc  Back                                                                                         │
+        │    q    Quit                                                                                         │
+        │                                                                                                      │
+        │    Info                                                                                              │
+        │    ──────────────────────────────────                                                                │
+        │    h/l ←/→  Switch view                                                                              │
+        │    ↑/↓      Scroll                                                                                   │
+        │    ^d/^u    Half-page down/up                                                                        │
+        │    ^f/^b    Full-page down/up                                                                        │
+        │    g/G      Top / Bottom                                                                             │
+        │    f        Toggle format (yaml/json)                                                                │
+        │    r        Refresh                                                                                  │
+        │                                                                                                      │
+        │    ↑/↓ scroll | ^d/^u half-page | g/G top/bottom | ?/esc close                                       │
+        │                                                                                                      │
+        ╰──────────────────────────────────────────────────────────────────────────────────────────────────────╯

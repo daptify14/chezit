@@ -1,0 +1,13 @@
+# Starship prompt -- managed by chezmoi
+format = "$all"
+
+[character]
+success_symbol = "[>](bold green)"
+error_symbol = "[x](bold red)"
+
+[directory]
+truncation_length = 3
+
+[git_branch]
+symbol = " "
+format = "[$symbol$branch]($style) "

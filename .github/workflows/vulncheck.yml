@@ -1,0 +1,19 @@
+name: Vulnerability Check
+
+on:
+  schedule:
+    - cron: '0 8 * * 1' # Every Monday at 08:00 UTC
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  vulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run govulncheck
+        uses: golang/govulncheck-action@b625fbe08f3bccbe446d94fbf87fcc875a4f50ee # v1
+        with:
+          go-version-file: go.mod

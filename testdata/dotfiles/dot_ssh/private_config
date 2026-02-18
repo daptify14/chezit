@@ -1,0 +1,8 @@
+# SSH config -- managed by chezmoi
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519
+
+Host *
+    AddKeysToAgent yes

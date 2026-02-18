@@ -1,0 +1,10 @@
+# Global gitignore -- managed by chezmoi
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.pyc
+__pycache__/

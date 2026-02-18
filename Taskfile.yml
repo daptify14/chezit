@@ -1,0 +1,217 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: '3'
+
+vars:
+  BINARY: chezit
+  BIN_DIR: bin
+  GOLANGCI_LINT_VERSION:
+    sh: cat .golangci-lint-version
+  # renovate: datasource=github-releases depName=caarlos0/svu
+  SVU_VERSION: '3.3.0'
+  # renovate: datasource=github-releases depName=goreleaser/goreleaser
+  GORELEASER_VERSION: '2.13.3'
+
+tasks:
+  default:
+    desc: List available tasks
+    internal: true
+    silent: true
+    cmds:
+      - task --list-all
+
+  build:
+    desc: Build the binary
+    sources: ['**/*.go', '!**/*_test.go', go.mod, go.sum]
+    generates: ['{{.BIN_DIR}}/{{.BINARY}}']
+    cmds:
+      - go build -o {{.BIN_DIR}}/{{.BINARY}} ./cmd/chezit
+
+  test:
+    desc: Run tests (pass args via --, e.g. task test -- -run TestGolden)
+    cmds:
+      - go test -v {{.CLI_ARGS}} ./cmd/... ./internal/...
+
+  test-update:
+    desc: Regenerate golden files (pass test filter via --, e.g. task test-update -- -run TestGoldenStatusTab)
+    cmds:
+      - go test -v {{.CLI_ARGS}} ./internal/tui/ -args -update
+
+  test-cover:
+    desc: Run tests with coverage report (scoped to internal packages)
+    cmds:
+      - go test -coverprofile=coverage.out -coverpkg=./internal/... ./...
+      - go tool cover -html=coverage.out -o coverage.html
+
+  install:
+    desc: Build and install as chezit-dev to ~/.local/bin (won't conflict with Homebrew release)
+    deps: [build]
+    cmds:
+      - mkdir -p $HOME/.local/bin
+      - cp {{.BIN_DIR}}/{{.BINARY}} $HOME/.local/bin/chezit-dev
+
+  clean:
+    desc: Remove build artifacts
+    cmds:
+      - rm -f {{.BIN_DIR}}/{{.BINARY}} coverage.out coverage.html
+
+  lint:install:
+    desc: Install golangci-lint to bin/
+    internal: true
+    status:
+      - test -x ./bin/golangci-lint
+      - ./bin/golangci-lint version 2>&1 | grep -qF '{{.GOLANGCI_LINT_VERSION}}'
+    cmds:
+      - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b {{.BIN_DIR}} v{{.GOLANGCI_LINT_VERSION}}
+
+  svu:install:
+    desc: Install svu to bin/
+    internal: true
+    status:
+      - test -x ./bin/svu
+      - './bin/svu --version 2>&1 | grep -qF ''{{.SVU_VERSION}}'''
+    cmds:
+      - 'GOBIN="$(pwd)/bin" go install github.com/caarlos0/svu/v3@v{{.SVU_VERSION}}'
+
+  goreleaser:install:
+    desc: Install goreleaser to bin/
+    internal: true
+    status:
+      - test -x ./bin/goreleaser
+      - './bin/goreleaser --version 2>&1 | grep -qF ''{{.GORELEASER_VERSION}}'''
+    cmds:
+      - 'GOBIN="$(pwd)/bin" go install github.com/goreleaser/goreleaser/v2@v{{.GORELEASER_VERSION}}'
+
+  lint:
+    desc: Run golangci-lint (version from .golangci-lint-version)
+    deps: [lint:install]
+    cmds:
+      - ./bin/golangci-lint run --timeout=5m {{.CLI_ARGS}}
+
+  vet:
+    desc: Run go vet
+    cmds:
+      - go vet ./...
+
+  fmt:
+    desc: Format Go files (gofumpt + gci via golangci-lint)
+    deps: [lint:install]
+    cmds:
+      - ./bin/golangci-lint fmt {{.CLI_ARGS}}
+
+  check-fmt:
+    desc: Check that all Go files are formatted (gofumpt + gci)
+    deps: [lint:install]
+    cmds:
+      - ./bin/golangci-lint fmt --diff
+
+  run:
+    desc: Build and run
+    deps: [build]
+    cmds:
+      - ./{{.BIN_DIR}}/{{.BINARY}}
+
+  run-debug:
+    desc: Build and run with debug message logging (task run-debug -- /path/to/log)
+    deps: [build]
+    vars:
+      LOG_FILE: '{{.CLI_ARGS | default "/tmp/chezit-debug.log"}}'
+    cmds:
+      - echo "Debug log:{{" "}}{{.LOG_FILE}}"
+      - echo "Tail in another terminal:{{" "}}tail -f {{.LOG_FILE}}"
+      - CHEZIT_DEBUG={{.LOG_FILE}} ./{{.BIN_DIR}}/{{.BINARY}}
+
+  tidy:
+    desc: Tidy module dependencies
+    cmds:
+      - go mod tidy
+
+  check:
+    desc: Run all checks (fmt, vet, lint, test)
+    deps: [check-fmt, vet, lint, test]
+
+  docs:
+    desc: Start local pkgsite documentation server on :6060
+    cmds:
+      - echo "Starting pkgsite at http://localhost:6060"
+      - go run golang.org/x/pkgsite/cmd/pkgsite@latest -http=:6060 .
+
+  vulncheck:
+    desc: Run govulncheck (fetches latest automatically)
+    cmds:
+      - go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+  release:
+    desc: "Create and push a release tag (task release BUMP=patch or VERSION=v1.2.3)"
+    deps: [svu:install]
+    vars:
+      TAG:
+        sh: |
+          if [ -n "{{.VERSION}}" ]; then
+            version="{{.VERSION}}"
+            echo "v${version#v}"
+          elif [ -n "{{.BUMP}}" ]; then
+            ./bin/svu "{{.BUMP}}"
+          else
+            echo "error: set BUMP (patch|minor|major) or VERSION" >&2
+            exit 1
+          fi
+    preconditions:
+      - sh: 'test -z "$(git status --porcelain)"'
+        msg: 'Working tree is dirty — commit or stash changes first'
+      - sh: 'git diff --quiet @{upstream}.. 2>/dev/null'
+        msg: 'Unpushed commits — push to remote before releasing'
+      - sh: 'echo "{{.TAG}}" | grep -Eq "^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$"'
+        msg: 'Invalid version format: {{.TAG}} (expected vX.Y.Z or vX.Y.Z-pre.N)'
+      - sh: '! git rev-parse "{{.TAG}}" >/dev/null 2>&1'
+        msg: 'Tag {{.TAG}} already exists locally'
+      - sh: 'test -z "$(git ls-remote --tags origin "{{.TAG}}")"'
+        msg: 'Tag {{.TAG}} already exists on remote'
+    cmds:
+      - git tag -a "{{.TAG}}" -m "Release {{.TAG}}"
+      - git push origin "{{.TAG}}" || { git tag -d "{{.TAG}}"; exit 1; }
+      - |
+        echo "Tag {{.TAG}} pushed."
+        sleep 3
+        run_id=$(gh run list --workflow=ci.yml --limit=1 --json databaseId,headBranch --jq '.[] | select(.headBranch=="{{.TAG}}") | .databaseId' 2>/dev/null)
+        if [ -n "$run_id" ]; then
+          echo "Release workflow started: $(gh run view "$run_id" --json url --jq .url 2>/dev/null)"
+          echo "Watch: gh run watch $run_id"
+        else
+          echo "Workflow not detected yet. Check manually:"
+          echo "  gh run list --workflow=ci.yml"
+        fi
+
+  release-dry:
+    desc: Dry-run release (snapshot build, nothing published)
+    deps: [goreleaser:install]
+    cmds:
+      - unset GITEA_TOKEN && ./bin/goreleaser release --snapshot --clean --skip=homebrew
+      - echo "Snapshot build complete. Artifacts in dist/"
+
+  record:
+    desc: "Record demo GIFs (all, or task record -- overview for one)"
+    deps: [build]
+    preconditions:
+      - sh: command -v vhs >/dev/null 2>&1
+        msg: "vhs not found — install with: brew install vhs"
+      - sh: command -v chezmoi >/dev/null 2>&1
+        msg: "chezmoi not found — install with: brew install chezmoi"
+    cmds:
+      - .vhs/record.sh {{.CLI_ARGS}}
+
+  version:
+    desc: Show current version from git tags
+    deps: [svu:install]
+    cmds:
+      - ./bin/svu current
+
+  setup:
+    desc: Install dev tools and git hooks
+    deps: [lint:install, svu:install, goreleaser:install]
+    cmds:
+      - |
+        if ! command -v lefthook >/dev/null 2>&1; then
+          echo "Installing lefthook..."
+          go install github.com/evilmartians/lefthook/v2@latest
+        fi
+      - lefthook install

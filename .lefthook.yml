@@ -1,0 +1,18 @@
+pre-commit:
+  piped: true
+  commands:
+    fmt:
+      run: task fmt -- {staged_files}
+      glob: "*.go"
+      stage_fixed: true
+    vet:
+      run: task vet
+      glob: "*.go"
+    lint:
+      run: task lint -- --new-from-rev=HEAD
+      glob: "*.go"
+
+pre-push:
+  commands:
+    check:
+      run: task check

@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+version: 2
+
+project_name: chezit
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - main: ./cmd/chezit
+    binary: chezit
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - arm64
+      - amd64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.ShortCommit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - formats:
+      - tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+homebrew_casks:
+  - name: chezit
+    repository:
+      owner: daptify14
+      name: homebrew-tap
+      branch: main
+    homepage: "https://github.com/daptify14/chezit"
+    description: "Terminal UI for chezmoi dotfile management"
+    license: MIT
+    binaries:
+      - chezit
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/{{.ProjectName}}"]
+          end
+
+release:
+  github:
+    owner: daptify14
+    name: chezit
+  draft: false
+  prerelease: auto

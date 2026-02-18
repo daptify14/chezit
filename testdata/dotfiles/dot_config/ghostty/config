@@ -1,0 +1,9 @@
+font-family = JetBrainsMono Nerd Font
+font-size = 14
+theme = catppuccin-mocha
+window-padding-x = 8
+window-padding-y = 8
+cursor-style = block
+cursor-style-blink = false
+copy-on-select = clipboard
+shell-integration = zsh

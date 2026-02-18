@@ -1,0 +1,41 @@
+ chezit > Status > .bashrc
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  - on disk  + source
+  --- a/.bashrc
+  +++ b/.bashrc
+  @@ -1,3 +1,4 @@
+   export EDITOR=vim
+  +export PAGER=less
+   alias ll='ls -la'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  +1/-0 lines | - on disk  + source | line 1/6
+↑/↓ scroll  ^d/^u half-page  g top  G bottom  e edit  a actions  esc back

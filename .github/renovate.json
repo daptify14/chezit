@@ -1,0 +1,86 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices"
+  ],
+  "ignorePresets": [
+    "abandonments:recommended"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "schedule": [
+    "before 7am on Wednesday"
+  ],
+  "packageRules": [
+    {
+      "description": "Bump go directive in go.mod when new Go versions release",
+      "matchManagers": ["gomod"],
+      "matchDepNames": ["go"],
+      "matchDepTypes": ["golang"],
+      "rangeStrategy": "bump"
+    },
+    {
+      "description": "Require dashboard approval for major Go dependency updates",
+      "matchManagers": ["gomod"],
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Group Charmbracelet/Charm TUI packages (charm.land v2 + github.com/charmbracelet x/ libs)",
+      "groupName": "charmbracelet",
+      "matchPackageNames": [
+        "charm.land/{/,}**",
+        "github.com/charmbracelet/{/,}**"
+      ]
+    },
+    {
+      "description": "Group GitHub Actions updates",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "groupName": "github-actions",
+      "automerge": true
+    },
+    {
+      "description": "Automerge patch-level Go dependency updates",
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchUpdateTypes": [
+        "patch",
+        "digest"
+      ],
+      "automerge": true
+    },
+    {
+      "description": "Automerge golangci-lint action and version updates",
+      "matchPackageNames": [
+        "golangci/golangci-lint-action",
+        "golangci/golangci-lint"
+      ],
+      "automerge": true
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "golangci-lint version file",
+      "managerFilePatterns": [".golangci-lint-version"],
+      "matchStrings": ["(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "depNameTemplate": "golangci/golangci-lint",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "customType": "regex",
+      "description": "Taskfile tool versions",
+      "managerFilePatterns": ["Taskfile.yml"],
+      "matchStrings": ["# renovate: datasource=(?<datasource>[\\w-]+) depName=(?<depName>[\\w/-]+)\\n\\s+\\w+:\\s+'(?<currentValue>[\\d.]+)'"],
+      "extractVersionTemplate": "^v?(?<version>.+)$"
+    }
+  ],
+  "postUpdateOptions": [
+    "gomodTidy",
+    "gomodUpdateImportPaths"
+  ]
+}

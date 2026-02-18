@@ -1,0 +1,38 @@
+
+
+        ╭──────────────────────────────────────────────────────────────────────────────────────────────────────╮
+        │                                                                                                      │
+        │    Global                                                                                            │
+        │    ───────────────────────────                                                                       │
+        │    ↑/↓  Navigate                                                                                     │
+        │    Tab  Switch tabs                                                                                  │
+        │    1-4  Jump to tab                                                                                  │
+        │    ?    Open/close keys                                                                              │
+        │    m    Mouse on (wheel/click)                                                                       │
+        │    esc  Back                                                                                         │
+        │    q    Quit                                                                                         │
+        │                                                                                                      │
+        │    Changes                                                                                           │
+        │    ────────────────────────────────────────                                                          │
+        │    /        Filter/search                                                                            │
+        │    enter    Diff / toggle section                                                                    │
+        │    S-↑/S-↓  Select range                                                                             │
+        │    s        Re-add (when available) / stage                                                          │
+        │    u        Unstage                                                                                  │
+        │    x        Discard / Undo commit                                                                    │
+        │    c        Commit staged                                                                            │
+        │    P        Push                                                                                     │
+        │    a        Actions menu                                                                             │
+        │    r        Refresh                                                                                  │
+        │                                                                                                      │
+        │    Preview                                                                                           │
+        │    ─────────────────────────────────────────────                                                     │
+        │    p    Show/hide preview                                                                            │
+        │    l/→  Focus preview                                                                                │
+        │    h/←  Back to list                                                                                 │
+        │    v    Switch diff/content                                                                          │
+        │    Preview appears when terminal is wide enough.                                                     │
+        │                                                                                                      │
+        │    ↑/↓ scroll | ^d/^u half-page | g/G top/bottom | ?/esc close                                       │
+        │                                                                                                      │
+        ╰──────────────────────────────────────────────────────────────────────────────────────────────────────╯

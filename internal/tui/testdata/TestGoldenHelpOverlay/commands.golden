@@ -1,0 +1,31 @@
+
+
+
+
+
+
+
+
+
+        ╭──────────────────────────────────────────────────────────────────────────────────────────────────────╮
+        │                                                                                                      │
+        │    Global                                                                                            │
+        │    ───────────────────────────                                                                       │
+        │    ↑/↓  Navigate                                                                                     │
+        │    Tab  Switch tabs                                                                                  │
+        │    1-4  Jump to tab                                                                                  │
+        │    ?    Open/close keys                                                                              │
+        │    m    Mouse on (wheel/click)                                                                       │
+        │    esc  Back                                                                                         │
+        │    q    Quit                                                                                         │
+        │                                                                                                      │
+        │    Commands                                                                                          │
+        │    ─────────────────────────────                                                                     │
+        │    ↑/↓    Navigate                                                                                   │
+        │    enter  Run command                                                                                │
+        │    d      Dry run (if available)                                                                     │
+        │    g/G    Top / Bottom                                                                               │
+        │                                                                                                      │
+        │    ↑/↓ scroll | ^d/^u half-page | g/G top/bottom | ?/esc close                                       │
+        │                                                                                                      │
+        ╰──────────────────────────────────────────────────────────────────────────────────────────────────────╯

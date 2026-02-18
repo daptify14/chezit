@@ -1,0 +1,3 @@
+│ .bashrc [bash file]
+│     1  export EDITOR=vim
+│     2  alias ll='ls -la'

@@ -1,0 +1,10 @@
+ chezit > Status
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ 1 Status    2 Files    3 Info    4 Commands
+╭─────────────────────────────────────────────────────────────────╮│ Preview
+│ / to search files...                                            ││   Select an item to preview
+╰─────────────────────────────────────────────────────────────────╯
+  ⣾  Loading git status...
+  No changes
+  chezmoi status: exit status 1
+↑/↓ nav  enter diff  a actions  c commit  r refresh  v switch diff/content  l/→ focus preview  p hide preview  esc quit
