@@ -34,13 +34,7 @@ func (m Model) loadManagedCmd() tea.Cmd {
 func (m Model) loadIgnoredCmd() tea.Cmd {
 	gen := m.gen
 	return func() tea.Msg {
-		var files []string
-		var err error
-		if m.filesTab.entryFilter.IsZero() {
-			files, err = m.service.IgnoredFiles()
-		} else {
-			files, err = m.service.IgnoredFilesWithFilter(m.filesTab.entryFilter)
-		}
+		files, err := m.service.IgnoredFiles()
 		return chezmoiIgnoredLoadedMsg{files: files, err: err, gen: gen}
 	}
 }

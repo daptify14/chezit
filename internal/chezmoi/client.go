@@ -247,10 +247,11 @@ func (c *Client) Managed() ([]string, error) {
 // Preserves --exclude=dirs unless dirs is explicitly included.
 func (c *Client) ManagedWithFilter(filter EntryFilter) ([]string, error) {
 	args := []string{"managed", "--path-style=absolute"}
-	if !slices.Contains(filter.Include, EntryDirs) {
-		args = append(args, "--exclude=dirs")
+	merged := filter
+	if !slices.Contains(merged.Include, EntryDirs) && !slices.Contains(merged.Exclude, EntryDirs) {
+		merged.Exclude = append(slices.Clone(filter.Exclude), EntryDirs)
 	}
-	args = append(args, entryFilterArgs(filter)...)
+	args = append(args, entryFilterArgs(merged)...)
 	output, err := c.run(args...)
 	if err != nil {
 		return nil, fmt.Errorf("chezmoi managed: %s: %w", strings.TrimSpace(string(output)), err)
@@ -261,20 +262,6 @@ func (c *Client) ManagedWithFilter(filter EntryFilter) ([]string, error) {
 // Ignored runs `chezmoi ignored` and resolves paths to absolute.
 func (c *Client) Ignored() ([]string, error) {
 	output, err := c.run("ignored")
-	if err != nil {
-		return nil, fmt.Errorf("chezmoi ignored: %s: %w", strings.TrimSpace(string(output)), err)
-	}
-	target, targetErr := c.TargetPath()
-	if targetErr != nil {
-		return nil, fmt.Errorf("chezmoi target-path: %w", targetErr)
-	}
-	return parseLinesWithHome(output, target), nil
-}
-
-func (c *Client) IgnoredWithFilter(filter EntryFilter) ([]string, error) {
-	args := []string{"ignored"}
-	args = append(args, entryFilterArgs(filter)...)
-	output, err := c.run(args...)
 	if err != nil {
 		return nil, fmt.Errorf("chezmoi ignored: %s: %w", strings.TrimSpace(string(output)), err)
 	}

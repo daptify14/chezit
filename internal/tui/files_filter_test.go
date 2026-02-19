@@ -103,11 +103,13 @@ func TestHandleChezmoiManagedKeys_ViewPickerToggleFilterAndApply(t *testing.T) {
 	if applied.overlays.showViewPicker {
 		t.Fatal("expected enter to apply and close view/filter overlay")
 	}
-	if len(applied.filesTab.entryFilter.Exclude) == 0 {
-		t.Fatal("expected applied entry filter to exclude toggled type")
+	if len(applied.filesTab.entryFilter.Include) == 0 {
+		t.Fatal("expected applied entry filter to include remaining types")
 	}
-	if applied.filesTab.entryFilter.Exclude[0] != cat.entryType {
-		t.Fatalf("expected excluded type %q, got %q", cat.entryType, applied.filesTab.entryFilter.Exclude[0])
+	for _, inc := range applied.filesTab.entryFilter.Include {
+		if inc == cat.entryType {
+			t.Fatalf("toggled-off type %q should not appear in includes", cat.entryType)
+		}
 	}
 }
 
@@ -164,14 +166,47 @@ func TestRenderManagedStatusBarShowsViewAndFilterChips(t *testing.T) {
 	m := NewModel(Options{Service: testService()})
 	m.width = 120
 	m.filesTab.viewMode = managedViewAll
-	m.filesTab.entryFilter = chezmoi.EntryFilter{Exclude: []chezmoi.EntryType{chezmoi.EntryFiles, chezmoi.EntryScripts}}
+	m.filesTab.entryFilter = chezmoi.EntryFilter{Include: []chezmoi.EntryType{chezmoi.EntryFiles, chezmoi.EntryScripts}}
 
 	out := m.renderManagedStatusBar()
 	if !strings.Contains(out, "[view:all]") {
 		t.Fatalf("expected status bar to include view chip, got:\n%s", out)
 	}
-	if !strings.Contains(out, "[filter:2 excluded]") {
+	if !strings.Contains(out, "[filter:2 included]") {
 		t.Fatalf("expected status bar to include filter chip, got:\n%s", out)
+	}
+}
+
+func TestRenderManagedStatusBarShowsFilterNAForIgnoredView(t *testing.T) {
+	m := NewModel(Options{Service: testService()})
+	m.width = 120
+	m.filesTab.viewMode = managedViewIgnored
+	m.filesTab.entryFilter = chezmoi.EntryFilter{Include: []chezmoi.EntryType{chezmoi.EntryFiles}}
+
+	out := m.renderManagedStatusBar()
+	if !strings.Contains(out, "[filter:N/A]") {
+		t.Fatalf("expected status bar to show [filter:N/A] for ignored view, got:\n%s", out)
+	}
+}
+
+func TestRenderViewPickerShowsFilterNoteForIgnoredView(t *testing.T) {
+	m := NewModel(Options{Service: testService()})
+	m.width = 80
+	m.height = 40
+	m.overlays.showViewPicker = true
+	m.overlays.viewPickerPendingMode = managedViewIgnored
+	m.overlays.viewPickerItems = []viewPickerItem{
+		{mode: managedViewManaged, label: "Managed"},
+		{mode: managedViewIgnored, label: "Ignored"},
+	}
+	m.overlays.filterCategories = []filterCategory{
+		{entryType: "", label: "Reset type filters", enabled: true},
+		{entryType: chezmoi.EntryFiles, label: "files", enabled: true},
+	}
+
+	out := m.renderViewPickerMenu()
+	if !strings.Contains(out, "filters not supported for ignored") {
+		t.Fatalf("expected view picker to show filter note for ignored, got:\n%s", out)
 	}
 }
 
