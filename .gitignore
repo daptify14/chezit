@@ -11,6 +11,9 @@
 *.cache
 .cache
 
+# GoReleaser
+/dist/
+
 # Test binary
 *.test
 

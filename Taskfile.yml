@@ -83,14 +83,10 @@ tasks:
 
   lint:
     desc: Run golangci-lint (version from .golangci-lint-version)
+    sources: ['**/*.go', go.mod, go.sum, .golangci.yml]
     deps: [lint:install]
     cmds:
       - ./bin/golangci-lint run --timeout=5m {{.CLI_ARGS}}
-
-  vet:
-    desc: Run go vet
-    cmds:
-      - go vet ./...
 
   fmt:
     desc: Format Go files (gofumpt + gci via golangci-lint)
@@ -100,6 +96,7 @@ tasks:
 
   check-fmt:
     desc: Check that all Go files are formatted (gofumpt + gci)
+    sources: ['**/*.go']
     deps: [lint:install]
     cmds:
       - ./bin/golangci-lint fmt --diff
@@ -126,8 +123,8 @@ tasks:
       - go mod tidy
 
   check:
-    desc: Run all checks (fmt, vet, lint, test)
-    deps: [check-fmt, vet, lint, test]
+    desc: Run all checks (fmt, lint, test)
+    deps: [check-fmt, lint, test]
 
   docs:
     desc: Start local pkgsite documentation server on :6060
@@ -142,20 +139,31 @@ tasks:
 
   release:
     desc: "Create and push a release tag (task release BUMP=patch or VERSION=v1.2.3)"
+    summary: |
+      Create and push a release tag, triggering the GitHub release workflow.
+
+      Usage:
+        task release BUMP=patch     # v0.1.1 → v0.1.2
+        task release BUMP=minor     # v0.1.1 → v0.2.0
+        task release BUMP=major     # v0.1.1 → v1.0.0
+        task release VERSION=v2.0.0 # explicit version
     deps: [svu:install]
     vars:
       TAG:
         sh: |
+          git fetch --tags --quiet
           if [ -n "{{.VERSION}}" ]; then
             version="{{.VERSION}}"
             echo "v${version#v}"
           elif [ -n "{{.BUMP}}" ]; then
             ./bin/svu "{{.BUMP}}"
           else
-            echo "error: set BUMP (patch|minor|major) or VERSION" >&2
-            exit 1
+            echo "_"
           fi
+    prompt: "Create and push {{.TAG}}?"
     preconditions:
+      - sh: '[ -n "{{.VERSION}}" ] || [ -n "{{.BUMP}}" ]'
+        msg: 'Set BUMP (patch|minor|major) or VERSION (e.g. task release BUMP=patch)'
       - sh: 'test -z "$(git status --porcelain)"'
         msg: 'Working tree is dirty — commit or stash changes first'
       - sh: 'git diff --quiet @{upstream}.. 2>/dev/null'
@@ -171,21 +179,14 @@ tasks:
       - git push origin "{{.TAG}}" || { git tag -d "{{.TAG}}"; exit 1; }
       - |
         echo "Tag {{.TAG}} pushed."
-        sleep 3
-        run_id=$(gh run list --workflow=ci.yml --limit=1 --json databaseId,headBranch --jq '.[] | select(.headBranch=="{{.TAG}}") | .databaseId' 2>/dev/null)
-        if [ -n "$run_id" ]; then
-          echo "Release workflow started: $(gh run view "$run_id" --json url --jq .url 2>/dev/null)"
-          echo "Watch: gh run watch $run_id"
-        else
-          echo "Workflow not detected yet. Check manually:"
-          echo "  gh run list --workflow=ci.yml"
-        fi
+        echo "Status: gh run list --workflow=release.yml --branch {{.TAG}}"
+        echo "Watch:  gh run watch -w release.yml"
 
   release-dry:
     desc: Dry-run release (snapshot build, nothing published)
     deps: [goreleaser:install]
     cmds:
-      - unset GITEA_TOKEN && ./bin/goreleaser release --snapshot --clean --skip=homebrew
+      - ./bin/goreleaser release --snapshot --clean --skip=homebrew
       - echo "Snapshot build complete. Artifacts in dist/"
 
   record:
@@ -203,6 +204,7 @@ tasks:
     desc: Show current version from git tags
     deps: [svu:install]
     cmds:
+      - git fetch --tags --quiet
       - ./bin/svu current
 
   setup:
