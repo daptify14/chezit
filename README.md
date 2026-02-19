@@ -185,7 +185,7 @@ Requires Go 1.26+ and [task](https://taskfile.dev/). Uses Bubble Tea v2 and Lip 
 ```bash
 task setup          # install dev tools and git hooks
 task fmt            # format code (gofumpt + gci via golangci-lint)
-task check          # run all checks (fmt, vet, lint, test)
+task check          # run all checks (fmt, lint, test)
 task test           # run tests (supports filters via --, e.g. task test -- -run TestGolden)
 task test-update    # regenerate golden snapshot files
 task test-update -- -run TestGoldenStatusTab|TestGoldenActionsMenu  # regenerate status-related golden snapshots

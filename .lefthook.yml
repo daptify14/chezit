@@ -5,9 +5,6 @@ pre-commit:
       run: task fmt -- {staged_files}
       glob: "*.go"
       stage_fixed: true
-    vet:
-      run: task vet
-      glob: "*.go"
     lint:
       run: task lint -- --new-from-rev=HEAD
       glob: "*.go"
