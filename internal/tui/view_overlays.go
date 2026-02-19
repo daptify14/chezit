@@ -145,6 +145,10 @@ func (m Model) renderViewPickerMenu() string {
 	b.WriteString("\n")
 	b.WriteString(activeTheme.DimText.Render("  Type Filters"))
 	b.WriteString("\n")
+	if m.overlays.viewPickerPendingMode == managedViewIgnored {
+		b.WriteString(activeTheme.DimText.Render("  filters not supported for ignored"))
+		b.WriteString("\n")
+	}
 
 	for _, cat := range m.overlays.filterCategories {
 		var line string
@@ -197,6 +201,10 @@ func (m Model) renderFilterOverlay() string {
 	var b strings.Builder
 	b.WriteString("\n  Entry Type Filter\n")
 	b.WriteString("  " + strings.Repeat("─", 30) + "\n")
+	if m.filesTab.viewMode == managedViewIgnored {
+		b.WriteString(activeTheme.DimText.Render("  filters not supported for ignored"))
+		b.WriteString("\n")
+	}
 
 	for i, cat := range m.overlays.filterCategories {
 		isSelected := i == m.overlays.filterCursor

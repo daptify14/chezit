@@ -14,10 +14,8 @@ func TestEntryFilterArgsBuildsLongFlags(t *testing.T) {
 	})
 
 	want := []string{
-		"--include=files",
-		"--include=templates",
-		"--exclude=dirs",
-		"--exclude=scripts",
+		"--include=files,templates",
+		"--exclude=dirs,scripts",
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("entryFilterArgs() = %#v, want %#v", got, want)

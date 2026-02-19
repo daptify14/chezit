@@ -47,9 +47,6 @@ func (s *Service) ManagedFilesWithFilter(filter EntryFilter) ([]string, error) {
 	return s.client.ManagedWithFilter(filter)
 }
 func (s *Service) IgnoredFiles() ([]string, error) { return s.client.Ignored() }
-func (s *Service) IgnoredFilesWithFilter(filter EntryFilter) ([]string, error) {
-	return s.client.IgnoredWithFilter(filter)
-}
 
 func (s *Service) UnmanagedFiles(filter ...EntryFilter) ([]string, error) {
 	return s.client.Unmanaged(filter...)

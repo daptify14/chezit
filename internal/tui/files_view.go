@@ -372,11 +372,15 @@ func (m Model) renderManagedStatusBar() string {
 	}
 
 	filterChip := "[filter:all]"
-	switch {
-	case len(m.filesTab.entryFilter.Exclude) > 0:
-		filterChip = fmt.Sprintf("[filter:%d excluded]", len(m.filesTab.entryFilter.Exclude))
-	case len(m.filesTab.entryFilter.Include) > 0:
-		filterChip = fmt.Sprintf("[filter:%d included]", len(m.filesTab.entryFilter.Include))
+	if m.filesTab.viewMode == managedViewIgnored {
+		filterChip = "[filter:N/A]"
+	} else {
+		switch {
+		case len(m.filesTab.entryFilter.Exclude) > 0:
+			filterChip = fmt.Sprintf("[filter:%d excluded]", len(m.filesTab.entryFilter.Exclude))
+		case len(m.filesTab.entryFilter.Include) > 0:
+			filterChip = fmt.Sprintf("[filter:%d included]", len(m.filesTab.entryFilter.Include))
+		}
 	}
 	viewChip := fmt.Sprintf("[view:%s]", strings.ToLower(managedViewModeLabel(m.filesTab.viewMode)))
 	status = strings.TrimRight(status, " ") + " " + viewChip + " " + filterChip + " "

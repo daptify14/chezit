@@ -154,10 +154,13 @@ func (m *Model) populateFilterCategories() {
 	allTypes := chezmoi.AllEntryTypes()
 	m.overlays.filterCategories = make([]filterCategory, 0, len(allTypes)+1)
 
-	activeExcludes := make(map[chezmoi.EntryType]bool, len(m.filesTab.entryFilter.Exclude))
-	for _, e := range m.filesTab.entryFilter.Exclude {
-		activeExcludes[e] = true
+	// When Include is set, only those types are enabled.
+	// When Include is empty (no filter), all types are enabled.
+	activeIncludes := make(map[chezmoi.EntryType]bool, len(m.filesTab.entryFilter.Include))
+	for _, inc := range m.filesTab.entryFilter.Include {
+		activeIncludes[inc] = true
 	}
+	hasFilter := len(activeIncludes) > 0
 
 	m.overlays.filterCategories = append(m.overlays.filterCategories, filterCategory{
 		entryType: "",
@@ -166,10 +169,11 @@ func (m *Model) populateFilterCategories() {
 	})
 
 	for _, et := range allTypes {
+		enabled := !hasFilter || activeIncludes[et]
 		m.overlays.filterCategories = append(m.overlays.filterCategories, filterCategory{
 			entryType: et,
 			label:     string(et),
-			enabled:   !activeExcludes[et],
+			enabled:   enabled,
 		})
 	}
 }
@@ -222,16 +226,22 @@ func (m Model) applyFilterOverlay() (tea.Model, tea.Cmd) {
 }
 
 func (m Model) entryFilterFromCategories() chezmoi.EntryFilter {
-	var excludes []chezmoi.EntryType
+	var includes []chezmoi.EntryType
+	allEnabled := true
 	for _, cat := range m.overlays.filterCategories {
 		if cat.entryType == "" {
 			continue
 		}
-		if !cat.enabled {
-			excludes = append(excludes, cat.entryType)
+		if cat.enabled {
+			includes = append(includes, cat.entryType)
+		} else {
+			allEnabled = false
 		}
 	}
-	return chezmoi.EntryFilter{Exclude: excludes}
+	if allEnabled {
+		return chezmoi.EntryFilter{}
+	}
+	return chezmoi.EntryFilter{Include: includes}
 }
 
 func entryFilterEqual(a, b chezmoi.EntryFilter) bool {

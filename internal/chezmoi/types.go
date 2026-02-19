@@ -37,13 +37,21 @@ func (f EntryFilter) IsZero() bool {
 
 func entryFilterArgs(f EntryFilter) []string {
 	var args []string
-	for _, t := range f.Include {
-		args = append(args, "--include="+string(t))
+	if len(f.Include) > 0 {
+		args = append(args, "--include="+joinEntryTypes(f.Include))
 	}
-	for _, t := range f.Exclude {
-		args = append(args, "--exclude="+string(t))
+	if len(f.Exclude) > 0 {
+		args = append(args, "--exclude="+joinEntryTypes(f.Exclude))
 	}
 	return args
+}
+
+func joinEntryTypes(types []EntryType) string {
+	parts := make([]string, len(types))
+	for i, t := range types {
+		parts[i] = string(t)
+	}
+	return strings.Join(parts, ",")
 }
 
 // FileStatus is a parsed line from `chezmoi status`.
