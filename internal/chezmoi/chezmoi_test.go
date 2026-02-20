@@ -86,6 +86,7 @@ func TestFileStatusSideLabel(t *testing.T) {
 		{path: "/home/user/.bashrc", src: 'D', dest: ' ', label: "pending apply"},
 		{path: "/home/user/.bashrc", src: 'R', dest: ' ', label: "pending apply"},
 		{path: "/home/user/.chezmoiscripts/run_once.sh", src: 'R', dest: ' ', label: "pending script run"},
+		{path: "/home/user/.chezmoiscripts/run_once.sh", src: ' ', dest: 'R', label: "pending script run"},
 		{path: "/home/user/.bashrc", src: ' ', dest: 'M', label: "target changed"},
 		{path: "/home/user/.bashrc", src: ' ', dest: 'D', label: "target changed"},
 		{path: "/home/user/.bashrc", src: ' ', dest: ' ', label: ""},
