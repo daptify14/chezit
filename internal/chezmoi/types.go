@@ -67,7 +67,7 @@ type FileStatus struct {
 func (f FileStatus) SideLabel() string {
 	src := f.SourceStatus != ' '
 	dest := f.DestStatus != ' '
-	if f.IsScript() && f.SourceStatus == 'R' && !dest {
+	if f.IsScript() && (f.SourceStatus == 'R' || f.DestStatus == 'R') {
 		return "pending script run"
 	}
 	switch {
