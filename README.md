@@ -180,7 +180,7 @@ Defaults are shown in the YAML example above.
 
 ## Development
 
-Requires Go 1.26+ and [task](https://taskfile.dev/). Uses Bubble Tea v2 and Lip Gloss v2 (pre-release) -- APIs may change before stable release.
+Requires Go 1.26+ and [task](https://taskfile.dev/). Uses Bubble Tea v2, Lip Gloss v2, and Bubbles v2. Huh v2 is still pre-release.
 
 ```bash
 task setup          # install dev tools and git hooks
