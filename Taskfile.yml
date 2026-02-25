@@ -9,7 +9,7 @@ vars:
   # renovate: datasource=github-releases depName=caarlos0/svu
   SVU_VERSION: '3.3.0'
   # renovate: datasource=github-releases depName=goreleaser/goreleaser
-  GORELEASER_VERSION: '2.13.3'
+  GORELEASER_VERSION: '2.14.0'
 
 tasks:
   default:
