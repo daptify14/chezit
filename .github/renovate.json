@@ -27,6 +27,14 @@
       "dependencyDashboardApproval": true
     },
     {
+      "description": "Ignore untagged pseudo-version deps that break Renovate's gomod manager",
+      "matchPackageNames": [
+        "charm.land/huh",
+        "github.com/charmbracelet/x/exp/golden"
+      ],
+      "enabled": false
+    },
+    {
       "description": "Group Charmbracelet/Charm TUI packages (charm.land v2 + github.com/charmbracelet x/ libs)",
       "groupName": "charmbracelet",
       "matchPackageNames": [
