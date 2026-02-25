@@ -3,15 +3,15 @@ module github.com/daptify14/chezit
 go 1.26.0
 
 require (
-	charm.land/bubbles/v2 v2.0.0-rc.1.0.20260109112849-ae99f46cec66
-	charm.land/bubbletea/v2 v2.0.0-rc.2.0.20260209074636-30878e43d7b0
-	charm.land/huh/v2 v2.0.0-20260105203756-d8977490d20c
-	charm.land/lipgloss/v2 v2.0.0-beta.3.0.20260212100304-e18737634dea
+	charm.land/bubbles/v2 v2.0.0
+	charm.land/bubbletea/v2 v2.0.0
+	charm.land/huh/v2 9dc45e34a40b
+	charm.land/lipgloss/v2 v2.0.0
 	github.com/alecthomas/chroma/v2 v2.23.1
 	github.com/catppuccin/go v0.3.0
 	github.com/charlievieth/fastwalk v1.0.14
 	github.com/charmbracelet/x/ansi v0.11.6
-	github.com/charmbracelet/x/exp/golden v0.0.0-20260216111343-536eb63c1f4c
+	github.com/charmbracelet/x/exp/golden d6a276319c45
 	github.com/epilande/go-devicons v0.0.0-20250505162540-0661cab71a28
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/spf13/cobra v1.10.2
