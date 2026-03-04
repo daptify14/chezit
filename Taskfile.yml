@@ -7,7 +7,7 @@ vars:
   GOLANGCI_LINT_VERSION:
     sh: cat .golangci-lint-version
   # renovate: datasource=github-releases depName=caarlos0/svu
-  SVU_VERSION: '3.3.0'
+  SVU_VERSION: '3.4.0'
   # renovate: datasource=github-releases depName=goreleaser/goreleaser
   GORELEASER_VERSION: '2.14.0'
 
