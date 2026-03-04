@@ -4,8 +4,8 @@ go 1.26.0
 
 require (
 	charm.land/bubbles/v2 v2.0.0
-	charm.land/bubbletea/v2 v2.0.0
-	charm.land/huh/v2 v2.0.0-20260105203756-d8977490d20c
+	charm.land/bubbletea/v2 v2.0.1
+	charm.land/huh/v2 9dc45e34a40b
 	charm.land/lipgloss/v2 v2.0.0
 	github.com/alecthomas/chroma/v2 v2.23.1
 	github.com/catppuccin/go v0.3.0
