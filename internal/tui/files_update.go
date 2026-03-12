@@ -105,7 +105,7 @@ func (m Model) handleSearchDebounced(msg filesSearchDebouncedMsg) (tea.Model, te
 	searchRoots := []string{searchRoot}
 
 	m.cancelFilesSearch()
-	ctx, cancel := context.WithTimeout(context.Background(), filesSearchTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), filesSearchTimeout) //nolint:gosec // G118: cancel stored in filesTab.search.cancel
 	m.filesTab.search.cancel = cancel
 	return m, m.runFilesSearchCmd(ctx, msg.requestID, query, searchRoots)
 }
