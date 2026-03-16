@@ -165,7 +165,7 @@ func (m Model) handleExecDone(msg chezmoiExecDoneMsg) (tea.Model, tea.Cmd) {
 	case chezmoiActionApplyFile:
 		m.ui.message = "applied file"
 	case chezmoiActionApplyAll:
-		m.ui.message = "applied all files"
+		m.ui.message = "apply complete"
 	case chezmoiActionUpdate:
 		m.ui.message = "update complete"
 	case chezmoiActionEditSource:
