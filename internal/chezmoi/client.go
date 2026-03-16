@@ -356,6 +356,14 @@ func (c *Client) ApplyAllCmd() *exec.Cmd {
 	return exec.Command(c.binary(), "apply")
 }
 
+func (c *Client) ApplyForceCmd(filePath string) *exec.Cmd {
+	return exec.Command(c.binary(), "apply", "--force", filePath)
+}
+
+func (c *Client) ApplyAllForceCmd() *exec.Cmd {
+	return exec.Command(c.binary(), "apply", "--force")
+}
+
 func (c *Client) ApplyDryRunCmd() *exec.Cmd {
 	return exec.Command(c.binary(), "apply", "--dry-run", "-v")
 }

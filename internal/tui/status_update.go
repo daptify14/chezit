@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"time"
 
 	"charm.land/bubbles/v2/key"
@@ -463,6 +464,10 @@ func (m Model) handleStatusRefresh() (tea.Model, tea.Cmd) {
 // --- Confirm dialog key handler ---
 
 func (m Model) handleConfirmKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
+	if isApplyAction(m.overlays.confirmAction) {
+		return m.handleApplyConfirmKeys(msg)
+	}
+
 	switch {
 	case key.Matches(msg, ChezConfirmKeys.Confirm):
 		m.view = StatusScreen
@@ -473,24 +478,14 @@ func (m Model) handleConfirmKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		m.overlays.confirmLabel = ""
 		m.overlays.confirmPath = ""
 		m.overlays.confirmPaths = nil
+		m.overlays.applyForce = false
 		switch action {
 		case chezmoiActionUpdate:
 			return m, m.updateCmd()
-		case chezmoiActionApplyAll:
-			return m, m.applyAllCmd()
-		case chezmoiActionApplyFile:
-			path := m.currentFilePath()
-			if path != "" {
-				return m, m.applyFileCmd(path)
-			}
 		case chezmoiActionForgetFile:
 			if savedPath != "" {
 				m.ui.busyAction = true
 				return m, tea.Batch(m.ui.loadingSpinner.Tick, m.forgetFileCmd(savedPath))
-			}
-		case chezmoiActionApplyManaged:
-			if savedPath != "" {
-				return m, m.applyFileCmd(savedPath)
 			}
 		case chezmoiActionPush:
 			m.ui.busyAction = true
@@ -552,7 +547,88 @@ func (m Model) handleConfirmKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		m.overlays.confirmLabel = ""
 		m.overlays.confirmPath = ""
 		m.overlays.confirmPaths = nil
+		m.overlays.applyForce = false
 		return m, nil
 	}
 	return m, nil
+}
+
+// handleApplyConfirmKeys handles the two-option apply confirm selector
+// (Force Apply vs Interactive Apply).
+func (m Model) handleApplyConfirmKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
+	switch {
+	case key.Matches(msg, ChezApplyConfirmKeys.Left):
+		m.overlays.applyForce = true
+		return m, nil
+	case key.Matches(msg, ChezApplyConfirmKeys.Right):
+		m.overlays.applyForce = false
+		return m, nil
+	case key.Matches(msg, ChezApplyConfirmKeys.Toggle):
+		m.overlays.applyForce = !m.overlays.applyForce
+		return m, nil
+	case key.Matches(msg, ChezApplyConfirmKeys.Confirm):
+		return m.executeApplyConfirm()
+	case key.Matches(msg, ChezApplyConfirmKeys.Cancel):
+		m.view = StatusScreen
+		m.overlays.confirmAction = chezmoiActionNone
+		m.overlays.confirmLabel = ""
+		m.overlays.confirmPath = ""
+		m.overlays.confirmPaths = nil
+		m.overlays.applyForce = false
+		return m, nil
+	}
+	return m, nil
+}
+
+// executeApplyConfirm dispatches the apply command based on the selected mode
+// (force or interactive) and clears the confirm overlay state.
+func (m Model) executeApplyConfirm() (tea.Model, tea.Cmd) {
+	m.view = StatusScreen
+	action := m.overlays.confirmAction
+	savedPath := m.overlays.confirmPath
+	force := m.overlays.applyForce
+
+	m.overlays.confirmAction = chezmoiActionNone
+	m.overlays.confirmLabel = ""
+	m.overlays.confirmPath = ""
+	m.overlays.confirmPaths = nil
+	m.overlays.applyForce = false
+
+	cmd := m.applyConfirmExecCmd(action, savedPath, force)
+	switch action {
+	case chezmoiActionApplyAll:
+		return m, execCmdOrUnsupported(chezmoiActionApplyAll, cmd, "chezmoi: apply not supported")
+	case chezmoiActionApplyFile, chezmoiActionApplyManaged:
+		return m, execCmdOrUnsupported(chezmoiActionApplyFile, cmd, "chezmoi: apply not supported")
+	}
+	return m, nil
+}
+
+func (m Model) applyConfirmExecCmd(action chezmoiAction, savedPath string, force bool) *exec.Cmd {
+	switch action {
+	case chezmoiActionApplyAll:
+		if force {
+			return m.service.ApplyAllForceCmd()
+		}
+		return m.service.ApplyAllCmd()
+	case chezmoiActionApplyFile:
+		path := m.currentFilePath()
+		if path == "" {
+			return nil
+		}
+		if force {
+			return m.service.ApplyForceCmd(path)
+		}
+		return m.service.ApplyCmd(path)
+	case chezmoiActionApplyManaged:
+		if savedPath == "" {
+			return nil
+		}
+		if force {
+			return m.service.ApplyForceCmd(savedPath)
+		}
+		return m.service.ApplyCmd(savedPath)
+	default:
+		return nil
+	}
 }

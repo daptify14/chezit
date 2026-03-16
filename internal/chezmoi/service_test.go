@@ -103,6 +103,12 @@ func TestServiceInteractiveCmdsNilInReadOnly(t *testing.T) {
 	if svc.ApplyAllCmd() != nil {
 		t.Error("expected ApplyAllCmd nil in read-only mode")
 	}
+	if svc.ApplyForceCmd("/home/test/.bashrc") != nil {
+		t.Error("expected ApplyForceCmd nil in read-only mode")
+	}
+	if svc.ApplyAllForceCmd() != nil {
+		t.Error("expected ApplyAllForceCmd nil in read-only mode")
+	}
 	if svc.UpdateCmd() != nil {
 		t.Error("expected UpdateCmd nil in read-only mode")
 	}

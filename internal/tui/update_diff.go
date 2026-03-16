@@ -36,7 +36,7 @@ func scrollViewport(vp *viewport.Model, msg tea.KeyPressMsg) bool {
 // --- Diff view key handler ---
 
 func (m Model) handleDiffKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
-	// Preview-apply mode: Esc cancels, Enter confirms and shells out
+	// Preview-apply mode: Esc cancels, Enter continues to the apply-mode selector.
 	if m.diff.previewApply {
 		switch {
 		case key.Matches(msg, ChezSharedKeys.Back):
@@ -48,14 +48,12 @@ func (m Model) handleDiffKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case key.Matches(msg, ChezCommandKeys.Run): // Enter
 			m.diff.previewApply = false
-			m.view = StatusScreen
 			m.diff.content = ""
 			m.diff.lines = nil
 			m.diff.resetViewport()
-			// Shell-out to apply with full TTY (sudo/scripts need it)
-			cmd := m.service.ApplyAllCmd()
-			wrapped := wrapWithPressEnter(cmd)
-			return m, execCmdOrUnsupported(chezmoiActionApplyAll, wrapped, "chezmoi: apply not supported")
+			m.actions.show = false
+			m = m.showConfirmScreen(chezmoiActionApplyAll, "apply all changes to destination")
+			return m, nil
 		}
 		// Fall through to scroll keys below
 	}

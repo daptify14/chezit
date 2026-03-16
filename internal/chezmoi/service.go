@@ -240,6 +240,20 @@ func (s *Service) ApplyAllCmd() *exec.Cmd {
 	return s.client.ApplyAllCmd()
 }
 
+func (s *Service) ApplyForceCmd(path string) *exec.Cmd {
+	if s.policy.IsReadOnly() {
+		return nil
+	}
+	return s.client.ApplyForceCmd(path)
+}
+
+func (s *Service) ApplyAllForceCmd() *exec.Cmd {
+	if s.policy.IsReadOnly() {
+		return nil
+	}
+	return s.client.ApplyAllForceCmd()
+}
+
 func (s *Service) ApplyRefreshCmd() *exec.Cmd {
 	if s.policy.IsReadOnly() {
 		return nil

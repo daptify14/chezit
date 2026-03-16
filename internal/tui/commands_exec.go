@@ -14,7 +14,7 @@ func (m Model) executeChezmoiCommand(id chezmoiCommandID) (tea.Model, tea.Cmd) {
 	switch id {
 	// --- Shell-out commands (need TTY for sudo/interactive scripts) ---
 	case chezmoiCmdApply:
-		// Dry-run preview: show diff first, then confirm via shell-out
+		// Dry-run preview: show diff first, then choose force vs interactive apply.
 		m.ui.busyAction = true
 		m.diff.previewApply = true
 		return m, func() tea.Msg {
