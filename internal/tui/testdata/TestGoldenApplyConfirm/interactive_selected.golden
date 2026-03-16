@@ -1,0 +1,19 @@
+
+
+
+
+
+          ╭──────────────────────────────────────────────────────────╮
+          │                                                          │
+          │                                                          │
+          │    apply all changes to destination                      │
+          │                                                          │
+          │    [ Force Apply ]   [ Interactive ]                     │
+          │                                                          │
+          │    Runs plain chezmoi apply and lets chezmoi prompt as   │
+          │  needed                                                  │
+          │                                                          │
+          │    ←/→ or Tab switch | Enter confirm | n/Esc cancel      │
+          │                                                          │
+          │                                                          │
+          ╰──────────────────────────────────────────────────────────╯
