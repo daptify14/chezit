@@ -282,15 +282,20 @@ func (m Model) handleKeyMsg(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	tab = m.activeTabName()
 	if m.view == StatusScreen && (tab == "Status" || tab == "Files") {
 		if key.Matches(msg, ChezPanelKeys.Toggle) {
-			m.panel.toggle(m.width)
-			if m.panel.shouldShow(m.width) {
-				var panelCmd tea.Cmd
-				m, panelCmd = m.panelLoadForCurrentTab()
-				return m, panelCmd
+			// "p" is used for Pull on incoming rows — let it fall through
+			if msg.String() == "p" && tab == "Status" && m.currentChangesRow().section == changesSectionIncoming {
+				// fall through to handleStatusKeys
+			} else {
+				m.panel.toggle(m.width)
+				if m.panel.shouldShow(m.width) {
+					var panelCmd tea.Cmd
+					m, panelCmd = m.panelLoadForCurrentTab()
+					return m, panelCmd
+				}
+				// Panel hidden: reset focus to list
+				m.panel.focusZone = panelFocusList
+				return m, nil
 			}
-			// Panel hidden: reset focus to list
-			m.panel.focusZone = panelFocusList
-			return m, nil
 		}
 
 		if m.panel.shouldShow(m.width) {
