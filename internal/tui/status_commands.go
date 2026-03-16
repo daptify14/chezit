@@ -85,11 +85,6 @@ func (m Model) reAddSelectionCmd(paths []string) tea.Cmd {
 	}
 }
 
-func (m Model) applyFileCmd(path string) tea.Cmd {
-	cmd := m.service.ApplyCmd(path)
-	return execCmdOrUnsupported(chezmoiActionApplyFile, cmd, "chezmoi: apply not supported")
-}
-
 func (m Model) applyAllCmd() tea.Cmd {
 	cmd := m.service.ApplyAllCmd()
 	return execCmdOrUnsupported(chezmoiActionApplyAll, cmd, "chezmoi: apply not supported")
