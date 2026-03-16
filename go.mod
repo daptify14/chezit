@@ -6,12 +6,12 @@ require (
 	charm.land/bubbles/v2 v2.0.0
 	charm.land/bubbletea/v2 v2.0.2
 	charm.land/huh/v2 v2.0.3
-	charm.land/lipgloss/v2 v2.0.1
+	charm.land/lipgloss/v2 v2.0.2
 	github.com/alecthomas/chroma/v2 v2.23.1
 	github.com/catppuccin/go v0.3.0
 	github.com/charlievieth/fastwalk v1.0.14
 	github.com/charmbracelet/x/ansi v0.11.6
-	github.com/charmbracelet/x/exp/golden v0.0.0-20260216111343-536eb63c1f4c
+	github.com/charmbracelet/x/exp/golden v0.0.0-20260315003922-bbd79dac4a98
 	github.com/epilande/go-devicons v0.0.0-20250505162540-0661cab71a28
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/spf13/cobra v1.10.2
