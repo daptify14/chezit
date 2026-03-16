@@ -53,6 +53,7 @@ func (m Model) handleDiffKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 			m.diff.resetViewport()
 			m.actions.show = false
 			m = m.showConfirmScreen(chezmoiActionApplyAll, "apply all changes to destination")
+			m.overlays.applyWrapTTY = true
 			return m, nil
 		}
 		// Fall through to scroll keys below

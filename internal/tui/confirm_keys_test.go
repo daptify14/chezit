@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -399,6 +401,9 @@ func TestApplyConfirmCancel(t *testing.T) {
 			if updated.overlays.applyForce || updated.overlays.confirmAction != chezmoiActionNone {
 				t.Fatalf("expected overlay state cleared, got force=%v action=%d", updated.overlays.applyForce, updated.overlays.confirmAction)
 			}
+			if updated.overlays.applyWrapTTY {
+				t.Fatal("expected applyWrapTTY=false after cancel")
+			}
 		})
 	}
 }
@@ -473,6 +478,27 @@ func TestApplyConfirmDescriptions(t *testing.T) {
 	}
 }
 
+func TestWrapApplyConfirmCmd(t *testing.T) {
+	cmd := exec.Command("/bin/true")
+
+	unwrapped := wrapApplyConfirmCmd(cmd, false)
+	if unwrapped != cmd {
+		t.Fatal("expected wrapApplyConfirmCmd(false) to return original cmd")
+	}
+
+	wrapped := wrapApplyConfirmCmd(cmd, true)
+	if wrapped == nil {
+		t.Fatal("expected wrapped cmd")
+		return
+	}
+	if filepath.Base(wrapped.Path) != "sh" {
+		t.Fatalf("expected wrapped command to use sh, got %q", wrapped.Path)
+	}
+	if !containsAny(strings.Join(wrapped.Args, " "), "chezmoi-wrap", "Press Enter to continue") {
+		t.Fatalf("expected wrap args to include shell wrapper, got %v", wrapped.Args)
+	}
+}
+
 func TestPreviewApplyEnterOpensSelector(t *testing.T) {
 	m := newTestModel(WithTab(3))
 	m.view = DiffScreen
@@ -491,6 +517,9 @@ func TestPreviewApplyEnterOpensSelector(t *testing.T) {
 	}
 	if !updated.overlays.applyForce {
 		t.Fatal("expected applyForce=true by default")
+	}
+	if !updated.overlays.applyWrapTTY {
+		t.Fatal("expected preview apply selector to preserve wrapped output")
 	}
 	if updated.diff.previewApply || updated.diff.lines != nil {
 		t.Fatal("expected diff state cleared")

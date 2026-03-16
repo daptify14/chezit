@@ -479,6 +479,7 @@ func (m Model) handleConfirmKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		m.overlays.confirmPath = ""
 		m.overlays.confirmPaths = nil
 		m.overlays.applyForce = false
+		m.overlays.applyWrapTTY = false
 		switch action {
 		case chezmoiActionUpdate:
 			return m, m.updateCmd()
@@ -548,6 +549,7 @@ func (m Model) handleConfirmKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		m.overlays.confirmPath = ""
 		m.overlays.confirmPaths = nil
 		m.overlays.applyForce = false
+		m.overlays.applyWrapTTY = false
 		return m, nil
 	}
 	return m, nil
@@ -575,6 +577,7 @@ func (m Model) handleApplyConfirmKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) 
 		m.overlays.confirmPath = ""
 		m.overlays.confirmPaths = nil
 		m.overlays.applyForce = false
+		m.overlays.applyWrapTTY = false
 		return m, nil
 	}
 	return m, nil
@@ -587,14 +590,17 @@ func (m Model) executeApplyConfirm() (tea.Model, tea.Cmd) {
 	action := m.overlays.confirmAction
 	savedPath := m.overlays.confirmPath
 	force := m.overlays.applyForce
+	wrapTTY := m.overlays.applyWrapTTY
 
 	m.overlays.confirmAction = chezmoiActionNone
 	m.overlays.confirmLabel = ""
 	m.overlays.confirmPath = ""
 	m.overlays.confirmPaths = nil
 	m.overlays.applyForce = false
+	m.overlays.applyWrapTTY = false
 
 	cmd := m.applyConfirmExecCmd(action, savedPath, force)
+	cmd = wrapApplyConfirmCmd(cmd, wrapTTY)
 	switch action {
 	case chezmoiActionApplyAll:
 		return m, execCmdOrUnsupported(chezmoiActionApplyAll, cmd, "chezmoi: apply not supported")
@@ -631,4 +637,11 @@ func (m Model) applyConfirmExecCmd(action chezmoiAction, savedPath string, force
 	default:
 		return nil
 	}
+}
+
+func wrapApplyConfirmCmd(cmd *exec.Cmd, wrapTTY bool) *exec.Cmd {
+	if !wrapTTY {
+		return cmd
+	}
+	return wrapWithPressEnter(cmd)
 }

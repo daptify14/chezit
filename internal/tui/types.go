@@ -284,6 +284,7 @@ type overlayState struct {
 	confirmPath   string
 	confirmPaths  []string
 	applyForce    bool // true = Force Apply (default for apply actions)
+	applyWrapTTY  bool // true = keep apply output visible with wrapWithPressEnter
 }
 
 // isApplyAction returns true for actions that use the two-option apply confirm selector.

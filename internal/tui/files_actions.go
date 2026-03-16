@@ -174,6 +174,7 @@ func (m Model) executeFilesAction(action chezmoiAction) (tea.Model, tea.Cmd) {
 		m.overlays.confirmLabel = "apply " + path
 		m.overlays.confirmPath = path
 		m.overlays.applyForce = true
+		m.overlays.applyWrapTTY = false
 		m.view = ConfirmScreen
 		return m, nil
 

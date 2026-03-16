@@ -393,6 +393,7 @@ func (m Model) showConfirmScreen(action chezmoiAction, label string) Model {
 	m.overlays.confirmAction = action
 	m.overlays.confirmLabel = label
 	m.overlays.applyForce = isApplyAction(action)
+	m.overlays.applyWrapTTY = false
 	m.view = ConfirmScreen
 	return m
 }
