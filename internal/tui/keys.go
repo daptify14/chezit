@@ -167,6 +167,39 @@ var ChezConfirmKeys = ChezConfirmKeyMap{
 	),
 }
 
+// ── Apply Confirm Selector Bindings ────────────────────────────────
+
+type ChezApplyConfirmKeyMap struct {
+	Left    key.Binding
+	Right   key.Binding
+	Toggle  key.Binding
+	Confirm key.Binding
+	Cancel  key.Binding
+}
+
+var ChezApplyConfirmKeys = ChezApplyConfirmKeyMap{
+	Left: key.NewBinding(
+		key.WithKeys("left", "h"),
+		key.WithHelp("←/→", "Switch"),
+	),
+	Right: key.NewBinding(
+		key.WithKeys("right", "l"),
+		key.WithHelp("←/→", "Switch"),
+	),
+	Toggle: key.NewBinding(
+		key.WithKeys("tab"),
+		key.WithHelp("Tab", "Switch"),
+	),
+	Confirm: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("Enter", "Confirm"),
+	),
+	Cancel: key.NewBinding(
+		key.WithKeys("n", "esc"),
+		key.WithHelp("n/esc", "Cancel"),
+	),
+}
+
 // ── Changes Tab Bindings ───────────────────────────────────────────
 
 type ChezChangesKeyMap struct {

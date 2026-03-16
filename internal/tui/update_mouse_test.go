@@ -108,6 +108,7 @@ func TestMouseClickFilesTreeOnSelectedDirectoryTogglesCollapse(t *testing.T) {
 	node := findTreeNodeByRelPath(updated.activeTree(), dirRel)
 	if node == nil {
 		t.Fatalf("expected directory %q to remain in tree", dirRel)
+		return
 	}
 	if node.expanded {
 		t.Fatalf("expected directory %q to be collapsed after click", dirRel)

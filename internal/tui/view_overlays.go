@@ -68,14 +68,63 @@ func (m Model) renderConfirmScreen() string {
 		label = "this action"
 	}
 
+	box := warningDialogBase.BorderForeground(activeTheme.Warning)
+
+	if isApplyAction(m.overlays.confirmAction) {
+		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center,
+			box.Render(m.renderApplyConfirmContent(label)))
+	}
+
 	content := fmt.Sprintf(
 		"\n  Are you sure you want to %s?\n\n  Press y to confirm, n or Esc to cancel.\n",
 		label,
 	)
-
-	box := warningDialogBase.BorderForeground(activeTheme.Warning)
-
 	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, box.Render(content))
+}
+
+func (m Model) renderApplyConfirmContent(label string) string {
+	forceLabel := "[ Force Apply ]"
+	interactiveLabel := "[ Interactive ]"
+
+	if m.overlays.applyForce {
+		forceLabel = activeTheme.Selected.Render(forceLabel)
+		interactiveLabel = activeTheme.DimText.Render(interactiveLabel)
+	} else {
+		forceLabel = activeTheme.DimText.Render(forceLabel)
+		interactiveLabel = activeTheme.Selected.Render(interactiveLabel)
+	}
+
+	var b strings.Builder
+	fmt.Fprintf(&b, "\n  %s\n\n", label)
+	fmt.Fprintf(&b, "  %s   %s\n\n", forceLabel, interactiveLabel)
+
+	b.WriteString(activeTheme.DimText.Render("  " + applyConfirmDescription(m.overlays.confirmAction, m.overlays.applyForce)))
+	b.WriteString("\n\n")
+	b.WriteString(activeTheme.HintText.Render("  " + lipgloss.JoinHorizontal(lipgloss.Top,
+		"←/→ or Tab switch", " | ", "Enter confirm", " | ", "n/Esc cancel")))
+	b.WriteString("\n")
+
+	return b.String()
+}
+
+func applyConfirmDescription(action chezmoiAction, force bool) string {
+	switch action {
+	case chezmoiActionApplyAll:
+		if force {
+			return "Applies all changes with --force (skips chezmoi prompts)"
+		}
+		return "Runs plain chezmoi apply and lets chezmoi prompt as needed"
+	case chezmoiActionApplyFile, chezmoiActionApplyManaged:
+		if force {
+			return "Applies the selected file with --force (skips chezmoi prompts)"
+		}
+		return "Runs plain chezmoi apply for the selected file and lets chezmoi prompt if needed"
+	default:
+		if force {
+			return "Applies with --force (skips chezmoi prompts)"
+		}
+		return "Runs plain chezmoi apply and lets chezmoi prompt as needed"
+	}
 }
 
 func (m Model) renderChezmoiDiffStatus() string {
@@ -102,7 +151,7 @@ func (m Model) renderChezmoiDiffStatus() string {
 	var help string
 	switch {
 	case m.diff.previewApply:
-		help = m.helpHint("↑/↓ scroll | ^d/^u half-page | enter apply | esc cancel")
+		help = m.helpHint("↑/↓ scroll | ^d/^u half-page | enter choose mode | esc cancel")
 	case m.actions.show:
 		help = m.helpHint("↑/↓ navigate | enter select | esc back")
 	default:

@@ -454,6 +454,7 @@ func TestOpaqueDirPopulatedMsgAppliesChildren(t *testing.T) {
 	got := findTreeNodeByRelPath(updated.filesTab.views[managedViewManaged].tree, "opaque")
 	if got == nil {
 		t.Fatal("expected opaque node")
+		return
 	}
 	if got.loading || got.loadingRequest != 0 {
 		t.Fatalf("expected loading cleared, got loading=%v request=%d", got.loading, got.loadingRequest)
@@ -498,6 +499,7 @@ func TestOpaqueDirPopulatedMsgOldRequestIgnored(t *testing.T) {
 	got := findTreeNodeByRelPath(updated.filesTab.views[managedViewManaged].tree, "opaque")
 	if got == nil {
 		t.Fatal("expected opaque node")
+		return
 	}
 	if !got.loading || got.loadingRequest != 2 {
 		t.Fatalf("expected loading to remain for active request, got loading=%v request=%d", got.loading, got.loadingRequest)
@@ -536,6 +538,7 @@ func TestOpaqueDirPopulatedMsgStaleGenClearsMatchingLoading(t *testing.T) {
 	got := findTreeNodeByRelPath(updated.filesTab.views[managedViewManaged].tree, "opaque")
 	if got == nil {
 		t.Fatal("expected opaque node")
+		return
 	}
 	if got.loading || got.loadingRequest != 0 {
 		t.Fatalf("expected matching loading cleared, got loading=%v request=%d", got.loading, got.loadingRequest)
@@ -585,6 +588,7 @@ func TestOpaqueDirPopulatedMsgPreservesFilteredProjection(t *testing.T) {
 	node := findTreeNodeByRelPath(m.filesTab.views[managedViewUnmanaged].tree, "workspace")
 	if node == nil {
 		t.Fatal("expected workspace node")
+		return
 	}
 	node.loading = true
 	node.loadingRequest = 1

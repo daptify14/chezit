@@ -283,6 +283,15 @@ type overlayState struct {
 	confirmLabel  string
 	confirmPath   string
 	confirmPaths  []string
+	applyForce    bool // true = Force Apply (default for apply actions)
+	applyWrapTTY  bool // true = keep apply output visible with wrapWithPressEnter
+}
+
+// isApplyAction returns true for actions that use the two-option apply confirm selector.
+func isApplyAction(action chezmoiAction) bool {
+	return action == chezmoiActionApplyFile ||
+		action == chezmoiActionApplyAll ||
+		action == chezmoiActionApplyManaged
 }
 
 // diffViewState groups fields for the full-screen diff overlay.
