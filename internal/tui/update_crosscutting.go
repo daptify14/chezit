@@ -94,7 +94,14 @@ func (m Model) handleSourceContent(msg chezmoiSourceContentMsg) (tea.Model, tea.
 	m.view = DiffScreen
 	m.diff.content = msg.content
 	m.diff.path = msg.path
-	m.diff.lines = strings.Split(msg.content, "\n")
+	m.diff.rawLines = strings.Split(msg.content, "\n")
+	if msg.pagerApplied {
+		m.diff.lines = strings.Split(msg.renderedDiff, "\n")
+		m.diff.pagerApplied = true
+	} else {
+		m.diff.lines = m.diff.rawLines
+		m.diff.pagerApplied = false
+	}
 	m.diff.resetViewport()
 	m.actions.show = false
 	return m, nil
@@ -118,7 +125,9 @@ func (m Model) handleCapturedOutput(msg chezmoiCapturedOutputMsg) (tea.Model, te
 	m.view = DiffScreen
 	m.diff.content = msg.output
 	m.diff.path = msg.label
-	m.diff.lines = strings.Split(msg.output, "\n")
+	m.diff.rawLines = strings.Split(msg.output, "\n")
+	m.diff.lines = m.diff.rawLines
+	m.diff.pagerApplied = false
 	m.diff.resetViewport()
 	m.actions.show = false
 	m.panel.clearCache()

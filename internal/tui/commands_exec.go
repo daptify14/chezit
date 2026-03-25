@@ -19,7 +19,11 @@ func (m Model) executeChezmoiCommand(id chezmoiCommandID) (tea.Model, tea.Cmd) {
 		m.diff.previewApply = true
 		return m, func() tea.Msg {
 			output, err := m.service.DiffAll()
-			return chezmoiSourceContentMsg{path: "Preview: chezmoi apply", content: output, err: err}
+			if err != nil {
+				return chezmoiSourceContentMsg{path: "Preview: chezmoi apply", content: output, err: err}
+			}
+			rendered, ok := m.renderDiffWithPager(output)
+			return chezmoiSourceContentMsg{path: "Preview: chezmoi apply", content: output, renderedDiff: rendered, pagerApplied: ok}
 		}
 	case chezmoiCmdUpdate:
 		m.view = ConfirmScreen
@@ -55,7 +59,11 @@ func (m Model) executeChezmoiCommand(id chezmoiCommandID) (tea.Model, tea.Cmd) {
 		m.ui.busyAction = true
 		return m, func() tea.Msg {
 			output, err := m.service.DiffAll()
-			return chezmoiSourceContentMsg{path: "chezmoi diff", content: output, err: err}
+			if err != nil {
+				return chezmoiSourceContentMsg{path: "chezmoi diff", content: output, err: err}
+			}
+			rendered, ok := m.renderDiffWithPager(output)
+			return chezmoiSourceContentMsg{path: "chezmoi diff", content: output, renderedDiff: rendered, pagerApplied: ok}
 		}
 	case chezmoiCmdCatConfig:
 		m.ui.busyAction = true

@@ -61,9 +61,11 @@ type chezmoiForgetDoneMsg struct {
 }
 
 type chezmoiSourceContentMsg struct {
-	path    string
-	content string
-	err     error
+	path         string
+	content      string // raw content
+	renderedDiff string // pager-colored output (empty if not a diff or no pager)
+	pagerApplied bool
+	err          error
 }
 
 type chezmoiCapturedOutputMsg struct {
