@@ -30,7 +30,7 @@ func TestPreparePagerArgs(t *testing.T) {
 			wantArgs: []string{
 				"delta",
 				"--color-only", "--paging=never", "--detect-dark-light=never",
-				"--width=variable", "--line-numbers=false", "--side-by-side=false",
+				"--width=variable",
 				"--dark",
 			},
 			wantOk: true,
@@ -42,7 +42,7 @@ func TestPreparePagerArgs(t *testing.T) {
 			wantArgs: []string{
 				"delta", "--syntax-theme=Nord",
 				"--color-only", "--paging=never", "--detect-dark-light=never",
-				"--width=variable", "--line-numbers=false", "--side-by-side=false",
+				"--width=variable",
 				"--light",
 			},
 			wantOk: true,
@@ -54,7 +54,7 @@ func TestPreparePagerArgs(t *testing.T) {
 			wantArgs: []string{
 				"/usr/local/bin/delta",
 				"--color-only", "--paging=never", "--detect-dark-light=never",
-				"--width=variable", "--line-numbers=false", "--side-by-side=false",
+				"--width=variable",
 				"--dark",
 			},
 			wantOk: true,

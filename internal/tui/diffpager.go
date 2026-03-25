@@ -23,8 +23,6 @@ var supportedPagerFlags = map[string][]string{
 		"--paging=never",
 		"--detect-dark-light=never",
 		"--width=variable",
-		"--line-numbers=false",
-		"--side-by-side=false",
 	},
 	"bat":           {"--paging=never", "--plain", "--color=always"},
 	"diff-so-fancy": {},
