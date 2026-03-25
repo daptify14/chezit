@@ -51,6 +51,11 @@ type Options struct {
 	// Valid values: IconModeNerdFont (default), IconModeUnicode, IconModeNone.
 	IconMode IconMode
 
+	// DiffPagerCmd is the chezmoi diff.pager value (e.g., "delta", "bat").
+	// When set and the pager is in the supported list, diff output is piped
+	// through this command for ANSI-colored rendering.
+	DiffPagerCmd string
+
 	// DebugLog, when non-nil, receives structured JSON logs of every tea.Msg
 	// processed by Update(). Set via the CHEZIT_DEBUG environment variable.
 	DebugLog *slog.Logger

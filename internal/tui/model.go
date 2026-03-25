@@ -52,6 +52,8 @@ type Model struct {
 
 	iconMode IconMode
 
+	diffPagerCmd string // chezmoi diff.pager value; empty = use built-in styling
+
 	width  int
 	height int
 
@@ -164,15 +166,16 @@ func NewModel(opts Options) Model {
 	}
 
 	model := Model{
-		service:     svc,
-		targetPath:  tp,
-		opts:        opts,
-		iconMode:    iconMode,
-		debugLog:    opts.DebugLog,
-		view:        startView,
-		activeTab:   initialTab,
-		tabNames:    tabs,
-		filterInput: ti,
+		service:      svc,
+		targetPath:   tp,
+		opts:         opts,
+		iconMode:     iconMode,
+		diffPagerCmd: opts.DiffPagerCmd,
+		debugLog:     opts.DebugLog,
+		view:         startView,
+		activeTab:    initialTab,
+		tabNames:     tabs,
+		filterInput:  ti,
 		ui: uiState{
 			loading:        statusLoading,
 			loadingSpinner: s,

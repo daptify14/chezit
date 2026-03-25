@@ -88,6 +88,11 @@ func runTUI(initialTab string) error {
 		debugLog = slog.New(slog.NewJSONHandler(f, nil))
 	}
 
+	var diffPagerCmd string
+	if diffCfg, err := svc.DiffConfig(); err == nil {
+		diffPagerCmd = diffCfg.Pager
+	}
+
 	opts := tui.Options{
 		Service:       svc,
 		EscBehavior:   tui.EscQuit,
@@ -95,6 +100,7 @@ func runTUI(initialTab string) error {
 		PanelMode:     cfg.Panel,
 		IconMode:      iconMode,
 		InitialTab:    initialTab,
+		DiffPagerCmd:  diffPagerCmd,
 		DebugLog:      debugLog,
 	}
 
