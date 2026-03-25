@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"bytes"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -103,14 +105,14 @@ func TestPreparePagerArgs(t *testing.T) {
 }
 
 func TestPipeThroughDiffPager_Unsupported(t *testing.T) {
-	_, err := pipeThroughDiffPager("diff content", "less", true)
+	_, _, err := pipeThroughDiffPager("diff content", "less", true)
 	if err == nil {
 		t.Fatal("expected error for unsupported pager")
 	}
 }
 
 func TestPipeThroughDiffPager_Empty(t *testing.T) {
-	_, err := pipeThroughDiffPager("diff content", "", true)
+	_, _, err := pipeThroughDiffPager("diff content", "", true)
 	if err == nil {
 		t.Fatal("expected error for empty pager command")
 	}
@@ -128,7 +130,7 @@ func TestPipeThroughDiffPager_SupportedPager(t *testing.T) {
 		t.Fatalf("write fake pager: %v", err)
 	}
 
-	rendered, err := pipeThroughDiffPager("+added\n-removed\n", scriptPath+` --syntax-theme="GitHub Dark"`, true)
+	rendered, _, err := pipeThroughDiffPager("+added\n-removed\n", scriptPath+` --syntax-theme="GitHub Dark"`, true)
 	if err != nil {
 		t.Fatalf("pipeThroughDiffPager returned error: %v", err)
 	}
@@ -138,5 +140,39 @@ func TestPipeThroughDiffPager_SupportedPager(t *testing.T) {
 	}
 	if !strings.Contains(rendered, "+added\n-removed") {
 		t.Fatalf("rendered output missing piped diff content, got: %q", rendered)
+	}
+}
+
+func TestRenderDiffWithPager_LogsPagerStderr(t *testing.T) {
+	dir := t.TempDir()
+	scriptPath := filepath.Join(dir, "delta")
+	script := strings.Join([]string{
+		"#!/bin/sh",
+		`echo "delta failed to parse input" >&2`,
+		"exit 1",
+	}, "\n") + "\n"
+	if err := os.WriteFile(scriptPath, []byte(script), 0o755); err != nil {
+		t.Fatalf("write fake pager: %v", err)
+	}
+
+	var logOutput bytes.Buffer
+	m := newTestModel()
+	m.diffPagerCmd = scriptPath
+	m.debugLog = slog.New(slog.NewJSONHandler(&logOutput, nil))
+
+	rendered, ok := m.renderDiffWithPager("+added\n")
+	if ok {
+		t.Fatal("renderDiffWithPager should fall back when pager execution fails")
+	}
+	if rendered != "" {
+		t.Fatalf("rendered = %q, want empty string", rendered)
+	}
+
+	logged := logOutput.String()
+	if !strings.Contains(logged, `"msg":"diff pager failed"`) {
+		t.Fatalf("expected diff pager failure log, got: %q", logged)
+	}
+	if !strings.Contains(logged, `"stderr":"delta failed to parse input"`) {
+		t.Fatalf("expected pager stderr in log output, got: %q", logged)
 	}
 }

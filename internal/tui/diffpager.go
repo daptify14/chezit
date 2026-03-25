@@ -20,6 +20,9 @@ const pagerTimeout = 3 * time.Second
 var supportedPagerFlags = map[string][]string{
 	"delta": {
 		"--paging=never",
+		// Delta runs in a subprocess that cannot reliably infer the same theme
+		// Bubble Tea already selected, so disable auto-detection and pass
+		// --dark/--light explicitly below.
 		"--detect-dark-light=never",
 	},
 	"bat":           {"--paging=never", "--plain", "--color=always"},
@@ -135,10 +138,10 @@ func splitCommandLine(input string) ([]string, error) {
 // pipeThroughDiffPager runs rawDiff through the pager command and returns
 // ANSI-colored output. Returns an error if the pager is unsupported, not
 // installed, or fails.
-func pipeThroughDiffPager(rawDiff, pagerCmd string, isDark bool) (string, error) {
+func pipeThroughDiffPager(rawDiff, pagerCmd string, isDark bool) (string, string, error) {
 	args, supported := preparePagerArgs(pagerCmd, isDark)
 	if !supported {
-		return "", errPagerUnsupported
+		return "", "", errPagerUnsupported
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), pagerTimeout)
@@ -152,10 +155,10 @@ func pipeThroughDiffPager(rawDiff, pagerCmd string, isDark bool) (string, error)
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		return "", err
+		return "", stderr.String(), err
 	}
 
-	return stdout.String(), nil
+	return stdout.String(), stderr.String(), nil
 }
 
 // diffRawLines returns the canonical raw diff lines for semantic operations
@@ -174,8 +177,15 @@ func (m Model) renderDiffWithPager(rawDiff string) (string, bool) {
 	if m.diffPagerCmd == "" {
 		return "", false
 	}
-	rendered, err := pipeThroughDiffPager(rawDiff, m.diffPagerCmd, activeTheme.IsDark)
+	rendered, stderr, err := pipeThroughDiffPager(rawDiff, m.diffPagerCmd, activeTheme.IsDark)
 	if err != nil {
+		if m.debugLog != nil {
+			args := []any{"pager", m.diffPagerCmd, "err", err}
+			if trimmed := strings.TrimSpace(stderr); trimmed != "" {
+				args = append(args, "stderr", trimmed)
+			}
+			m.debugLog.Warn("diff pager failed", args...)
+		}
 		return "", false
 	}
 	return rendered, true
