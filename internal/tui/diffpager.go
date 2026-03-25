@@ -34,8 +34,8 @@ func preparePagerArgs(pagerCmd string, isDark bool) ([]string, bool) {
 		return nil, false
 	}
 
-	parts := strings.Fields(pagerCmd)
-	if len(parts) == 0 {
+	parts, err := splitCommandLine(pagerCmd)
+	if err != nil || len(parts) == 0 {
 		return nil, false
 	}
 
@@ -58,6 +58,78 @@ func preparePagerArgs(pagerCmd string, isDark bool) ([]string, bool) {
 	}
 
 	return args, true
+}
+
+// splitCommandLine parses a shell-like argv string, supporting quoted args
+// and backslash escapes. It intentionally does not implement full shell
+// expansion semantics.
+func splitCommandLine(input string) ([]string, error) {
+	var (
+		args          []string
+		current       strings.Builder
+		inSingleQuote bool
+		inDoubleQuote bool
+	)
+
+	flushCurrent := func() {
+		if current.Len() == 0 {
+			return
+		}
+		args = append(args, current.String())
+		current.Reset()
+	}
+
+	for i := 0; i < len(input); i++ {
+		ch := input[i]
+
+		switch {
+		case inSingleQuote:
+			if ch == '\'' {
+				inSingleQuote = false
+				continue
+			}
+			current.WriteByte(ch)
+
+		case inDoubleQuote:
+			switch ch {
+			case '"':
+				inDoubleQuote = false
+			case '\\':
+				i++
+				if i >= len(input) {
+					return nil, errors.New("unterminated escape sequence")
+				}
+				current.WriteByte(input[i])
+			default:
+				current.WriteByte(ch)
+			}
+
+		default:
+			switch ch {
+			case ' ', '\t', '\n', '\r':
+				flushCurrent()
+			case '\'':
+				inSingleQuote = true
+			case '"':
+				inDoubleQuote = true
+			case '\\':
+				i++
+				if i >= len(input) {
+					return nil, errors.New("unterminated escape sequence")
+				}
+				current.WriteByte(input[i])
+			default:
+				current.WriteByte(ch)
+			}
+		}
+	}
+
+	if inSingleQuote || inDoubleQuote {
+		return nil, errors.New("unterminated quoted string")
+	}
+
+	flushCurrent()
+	return args, nil
 }
 
 // pipeThroughDiffPager runs rawDiff through the pager command and returns

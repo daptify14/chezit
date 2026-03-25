@@ -1,7 +1,10 @@
 package tui
 
 import (
+	"os"
+	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -46,6 +49,17 @@ func TestPreparePagerArgs(t *testing.T) {
 			wantOk: true,
 		},
 		{
+			name:     "delta with quoted arg containing spaces",
+			pagerCmd: `delta --syntax-theme="GitHub Dark"`,
+			isDark:   true,
+			wantArgs: []string{
+				"delta", "--syntax-theme=GitHub Dark",
+				"--paging=never", "--detect-dark-light=never",
+				"--dark",
+			},
+			wantOk: true,
+		},
+		{
 			name:     "delta absolute path",
 			pagerCmd: "/usr/local/bin/delta",
 			isDark:   true,
@@ -67,6 +81,11 @@ func TestPreparePagerArgs(t *testing.T) {
 			pagerCmd: "diff-so-fancy",
 			wantArgs: []string{"diff-so-fancy"},
 			wantOk:   true,
+		},
+		{
+			name:     "unterminated quote",
+			pagerCmd: `delta --syntax-theme="GitHub Dark`,
+			wantOk:   false,
 		},
 	}
 
@@ -94,5 +113,30 @@ func TestPipeThroughDiffPager_Empty(t *testing.T) {
 	_, err := pipeThroughDiffPager("diff content", "", true)
 	if err == nil {
 		t.Fatal("expected error for empty pager command")
+	}
+}
+
+func TestPipeThroughDiffPager_SupportedPager(t *testing.T) {
+	dir := t.TempDir()
+	scriptPath := filepath.Join(dir, "delta")
+	script := strings.Join([]string{
+		"#!/bin/sh",
+		`printf 'ARGS:%s\n' "$*"`,
+		"cat",
+	}, "\n") + "\n"
+	if err := os.WriteFile(scriptPath, []byte(script), 0o755); err != nil {
+		t.Fatalf("write fake pager: %v", err)
+	}
+
+	rendered, err := pipeThroughDiffPager("+added\n-removed\n", scriptPath+` --syntax-theme="GitHub Dark"`, true)
+	if err != nil {
+		t.Fatalf("pipeThroughDiffPager returned error: %v", err)
+	}
+
+	if !strings.Contains(rendered, "ARGS:--syntax-theme=GitHub Dark --paging=never --detect-dark-light=never --dark") {
+		t.Fatalf("rendered output missing expected args, got: %q", rendered)
+	}
+	if !strings.Contains(rendered, "+added\n-removed") {
+		t.Fatalf("rendered output missing piped diff content, got: %q", rendered)
 	}
 }

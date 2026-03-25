@@ -10,7 +10,7 @@ import (
 // preRenderDiffContent renders all diff lines into a single styled string
 // suitable for viewport.SetContent(). The viewport handles scroll/visibility.
 // When pagerApplied is true, lines already contain ANSI colors from an external
-// pager and are rendered as-is with only truncation/padding.
+// pager and are passed through as-is; the viewport's SoftWrap handles wrapping.
 func preRenderDiffContent(lines []string, width int, pagerApplied bool) string {
 	var b strings.Builder
 	for i, line := range lines {

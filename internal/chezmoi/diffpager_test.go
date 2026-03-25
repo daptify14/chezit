@@ -1,68 +1,114 @@
 package chezmoi
 
 import (
-	"encoding/json"
+	"strings"
 	"testing"
 )
 
-func TestParseDiffConfig(t *testing.T) {
+func TestClientDiffConfig(t *testing.T) {
 	tests := []struct {
 		name      string
-		input     string
+		body      string
 		wantPager string
-		wantErr   bool
+		wantErr   string
 	}{
 		{
-			name:      "pager set",
-			input:     `{"diff":{"pager":"delta"}}`,
+			name: "pager set",
+			body: `
+case "$1" in
+dump-config)
+	printf '%s\n' '{"diff":{"pager":"delta"}}'
+	;;
+*)
+	echo "unexpected command: $*" >&2
+	exit 1
+	;;
+esac
+`,
 			wantPager: "delta",
 		},
 		{
-			name:      "pager with args",
-			input:     `{"diff":{"pager":"delta --syntax-theme=Nord"}}`,
-			wantPager: "delta --syntax-theme=Nord",
+			name: "pager with quoted args",
+			body: `
+case "$1" in
+dump-config)
+	printf '%s\n' '{"diff":{"pager":"delta --syntax-theme=\"GitHub Dark\""}}'
+	;;
+*)
+	echo "unexpected command: $*" >&2
+	exit 1
+	;;
+esac
+`,
+			wantPager: `delta --syntax-theme="GitHub Dark"`,
 		},
 		{
-			name:      "pager empty",
-			input:     `{"diff":{"pager":""}}`,
+			name: "diff section missing",
+			body: `
+case "$1" in
+dump-config)
+	printf '%s\n' '{"color":{"ui":true}}'
+	;;
+*)
+	echo "unexpected command: $*" >&2
+	exit 1
+	;;
+esac
+`,
 			wantPager: "",
 		},
 		{
-			name:      "diff section missing",
-			input:     `{"color":{"ui":true}}`,
-			wantPager: "",
+			name: "invalid json",
+			body: `
+case "$1" in
+dump-config)
+	printf '%s\n' 'not json'
+	;;
+*)
+	echo "unexpected command: $*" >&2
+	exit 1
+	;;
+esac
+`,
+			wantErr: "invalid character",
 		},
 		{
-			name:      "empty object",
-			input:     `{}`,
-			wantPager: "",
-		},
-		{
-			name:    "invalid json",
-			input:   `not json`,
-			wantErr: true,
+			name: "dump-config command failure",
+			body: `
+case "$1" in
+dump-config)
+	echo "dump-config failed" >&2
+	exit 1
+	;;
+*)
+	echo "unexpected command: $*" >&2
+	exit 1
+	;;
+esac
+`,
+			wantErr: "chezmoi dump-config: dump-config failed",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var cfg struct {
-				Diff struct {
-					Pager string `json:"pager"`
-				} `json:"diff"`
-			}
-			err := json.Unmarshal([]byte(tt.input), &cfg)
-			if tt.wantErr {
+			client := New(WithBinaryPath(writeFakeChezmoiClientBinary(t, tt.body)))
+
+			cfg, err := client.DiffConfig()
+			if tt.wantErr != "" {
 				if err == nil {
 					t.Fatal("expected error, got nil")
+				}
+				if !strings.Contains(err.Error(), tt.wantErr) {
+					t.Fatalf("error = %q, want substring %q", err.Error(), tt.wantErr)
 				}
 				return
 			}
 			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
+				t.Fatalf("DiffConfig returned unexpected error: %v", err)
 			}
-			if cfg.Diff.Pager != tt.wantPager {
-				t.Errorf("pager = %q, want %q", cfg.Diff.Pager, tt.wantPager)
+			if cfg.Pager != tt.wantPager {
+				t.Fatalf("Pager = %q, want %q", cfg.Pager, tt.wantPager)
 			}
 		})
 	}
