@@ -156,9 +156,11 @@ type templatePathsLoadedMsg struct {
 
 // panelContentLoadedMsg is sent when async panel content loading completes.
 type panelContentLoadedMsg struct {
-	path    string
-	mode    panelContentMode
-	section changesSection
-	content string
-	err     error
+	path         string
+	mode         panelContentMode
+	section      changesSection
+	content      string // raw content
+	rendered     string // pager-rendered output for diff mode (empty if no pager)
+	pagerApplied bool
+	err          error
 }

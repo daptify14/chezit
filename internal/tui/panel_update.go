@@ -224,13 +224,19 @@ func (m Model) panelContentCmd(path string, mode panelContentMode, section chang
 			content, err = m.panelLoadContentPreview(path, section)
 		}
 
-		return panelContentLoadedMsg{
+		msg := panelContentLoadedMsg{
 			path:    path,
 			mode:    mode,
 			section: section,
 			content: content,
 			err:     err,
 		}
+		if err == nil && mode == panelModeDiff {
+			rendered, ok := m.renderDiffWithPager(content)
+			msg.rendered = rendered
+			msg.pagerApplied = ok
+		}
+		return msg
 	}
 }
 
@@ -240,12 +246,24 @@ func (m Model) handlePanelContentLoaded(msg panelContentLoadedMsg) (Model, tea.C
 	m.panel.loading = false
 
 	// Cache the result regardless of staleness
-	lines := strings.Split(msg.content, "\n")
-	m.panel.cachePut(msg.path, msg.mode, msg.section, panelCacheEntry{
-		content: msg.content,
-		lines:   lines,
-		err:     msg.err,
-	})
+	rawLines := strings.Split(msg.content, "\n")
+	var lines []string
+	if msg.pagerApplied {
+		lines = strings.Split(msg.rendered, "\n")
+	} else {
+		lines = rawLines
+	}
+
+	entry := panelCacheEntry{
+		content:      msg.content,
+		lines:        lines,
+		err:          msg.err,
+		pagerApplied: msg.pagerApplied,
+	}
+	if msg.mode == panelModeDiff {
+		entry.rawLines = rawLines
+	}
+	m.panel.cachePut(msg.path, msg.mode, msg.section, entry)
 
 	// Stale async guard: only update viewport if this matches current state
 	if msg.path == m.panel.currentPath && msg.mode == m.panel.contentMode && msg.section == m.panel.currentSection {
@@ -317,7 +335,7 @@ func (m Model) panelViewportContentForWidth(contentWidth int) string {
 		if entry.err != nil {
 			return activeTheme.DimText.Render("  " + panelErrorText(entry.err))
 		}
-		return m.renderPanelViewportContent(entry.lines, contentWidth)
+		return m.renderPanelViewportContent(entry.lines, contentWidth, entry.pagerApplied)
 	}
 }
 

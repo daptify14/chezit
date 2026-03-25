@@ -249,7 +249,7 @@ func TestRenderPanelDiffEmptyUntrackedShowsRelevantMessage(t *testing.T) {
 		{Path: "home/private_dot_config/tmux/tmux.conf", StatusCode: "U"},
 	}
 
-	got := m.renderPanelDiff([]string{""}, 80)
+	got := m.renderPanelDiff([]string{""}, 80, false)
 	if !containsAny(got, "Untracked file") {
 		t.Fatalf("expected untracked-specific empty-diff message, got:\n%s", got)
 	}

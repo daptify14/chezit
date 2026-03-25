@@ -27,9 +27,11 @@ type panelCacheKey struct {
 
 // panelCacheEntry holds pre-loaded content for a file.
 type panelCacheEntry struct {
-	content string
-	lines   []string
-	err     error
+	content      string
+	lines        []string // rendered lines for viewport (pager-colored or raw)
+	rawLines     []string // canonical raw diff lines; nil for non-diff content
+	pagerApplied bool
+	err          error
 }
 
 // Panel auto-visibility constants.
