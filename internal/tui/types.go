@@ -314,6 +314,7 @@ func (d *diffViewState) ensureViewport(width, height int) {
 		d.viewport = viewport.New()
 		d.viewport.SetWidth(width)
 		d.viewport.SetHeight(height)
+		d.viewport.SoftWrap = d.pagerApplied
 		d.viewportReady = true
 		d.lastWidth = width
 	}

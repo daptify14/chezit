@@ -158,10 +158,10 @@ func (m Model) renderPanelDiff(lines []string, width int, pagerApplied bool) str
 
 	var b strings.Builder
 	for i, line := range lines {
-		b.WriteString("  ")
 		if pagerApplied {
-			b.WriteString(visualTruncate(line, width-2))
+			b.WriteString(line)
 		} else {
+			b.WriteString("  ")
 			style := diffLineStyle(line)
 			b.WriteString(style.Render(visualTruncate(line, width-2)))
 		}

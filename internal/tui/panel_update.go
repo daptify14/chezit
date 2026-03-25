@@ -345,6 +345,9 @@ func (m Model) syncPanelViewportContent() Model {
 		return m
 	}
 	m.panel.ensureViewport(contentWidth, viewportHeight)
+	if entry, ok := m.panel.cacheGet(m.panel.currentPath, m.panel.contentMode, m.panel.currentSection); ok {
+		m.panel.viewport.SoftWrap = entry.pagerApplied
+	}
 	content := m.panelViewportContentForWidth(contentWidth)
 	currentOffset := m.panel.viewport.YOffset()
 	m.panel.viewport.SetContent(content)

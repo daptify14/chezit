@@ -19,10 +19,8 @@ const pagerTimeout = 3 * time.Second
 // Only pagers in this table are activated; unsupported pagers are ignored.
 var supportedPagerFlags = map[string][]string{
 	"delta": {
-		"--color-only",
 		"--paging=never",
 		"--detect-dark-light=never",
-		"--width=variable",
 	},
 	"bat":           {"--paging=never", "--plain", "--color=always"},
 	"diff-so-fancy": {},
