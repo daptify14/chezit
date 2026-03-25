@@ -134,6 +134,24 @@ func TestGoldenDiffView(t *testing.T) {
 		output := stripForGolden(m.renderDiffView())
 		golden.RequireEqual(t, []byte(output))
 	})
+
+	t.Run("pager_mode", func(t *testing.T) {
+		rawDiff := "--- a/.bashrc\n+++ b/.bashrc\n@@ -1,3 +1,4 @@\n export EDITOR=vim\n+export PAGER=less\n alias ll='ls -la'\n"
+		rawLines := strings.Split(strings.TrimRight(rawDiff, "\n"), "\n")
+		pagerLines := []string{
+			".bashrc │ 1 +",
+			" 1 │ export EDITOR=vim",
+			" 2 │ export PAGER=less",
+		}
+		m := newTestModel(
+			WithDiffContent("/home/test/.bashrc", rawDiff, len(rawLines)),
+		)
+		m.diff.rawLines = rawLines
+		m.diff.lines = pagerLines
+		m.diff.pagerApplied = true
+		output := stripForGolden(m.renderDiffView())
+		golden.RequireEqual(t, []byte(output))
+	})
 }
 
 // ── Landing View ────────────────────────────────────────────────────
@@ -163,6 +181,30 @@ func TestGoldenPanel(t *testing.T) {
 		m.panel.cachePut("/home/test/.bashrc", panelModeDiff, changesSectionDrift, panelCacheEntry{
 			content: "+added line\n-removed line",
 			lines:   []string{"+added line", "-removed line"},
+		})
+		output := stripForGolden(m.renderFilePanel(panelWidth))
+		golden.RequireEqual(t, []byte(output))
+	})
+
+	t.Run("diff_mode_pager", func(t *testing.T) {
+		rawDiff := "--- a/.bashrc\n+++ b/.bashrc\n@@ -1,3 +1,4 @@\n export EDITOR=vim\n+export PAGER=less\n alias ll='ls -la'\n"
+		rawLines := strings.Split(strings.TrimRight(rawDiff, "\n"), "\n")
+		pagerLines := []string{
+			".bashrc │ 1 +",
+			" 1 │ export EDITOR=vim",
+			" 2 │ export PAGER=less",
+		}
+		m := newTestModel(
+			WithPanelVisible(),
+			WithSize(140, 40),
+		)
+		m.panel.currentPath = "/home/test/.bashrc"
+		m.panel.contentMode = panelModeDiff
+		m.panel.cachePut("/home/test/.bashrc", panelModeDiff, changesSectionDrift, panelCacheEntry{
+			content:      rawDiff,
+			lines:        pagerLines,
+			rawLines:     rawLines,
+			pagerApplied: true,
 		})
 		output := stripForGolden(m.renderFilePanel(panelWidth))
 		golden.RequireEqual(t, []byte(output))

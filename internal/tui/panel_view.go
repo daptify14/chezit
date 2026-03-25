@@ -97,7 +97,11 @@ func (m Model) renderPanelTitleBar(width int) string {
 	// Add diff summary, direction hint, and side qualifier if in diff mode
 	if m.panel.contentMode == panelModeDiff {
 		if entry, ok := m.panel.cacheGet(m.panel.currentPath, panelModeDiff, m.panel.currentSection); ok && entry.err == nil {
-			summary := diffSummary(entry.lines)
+			summaryLines := entry.lines
+			if entry.rawLines != nil {
+				summaryLines = entry.rawLines
+			}
+			summary := diffSummary(summaryLines)
 			summaryStr := activeTheme.DimText.Render("  " + summary)
 			title += summaryStr
 		}
@@ -139,25 +143,28 @@ func normalizeLexerName(name string) string {
 }
 
 // renderPanelViewportContent renders the content for the panel viewport.
-func (m Model) renderPanelViewportContent(lines []string, width int) string {
+func (m Model) renderPanelViewportContent(lines []string, width int, pagerApplied bool) string {
 	if m.panel.contentMode == panelModeDiff {
-		return m.renderPanelDiff(lines, width)
+		return m.renderPanelDiff(lines, width, pagerApplied)
 	}
 	return renderPanelFileContent(lines, width, m.panel.currentPath)
 }
 
 // renderPanelDiff renders diff lines with syntax coloring for the panel viewport.
-func (m Model) renderPanelDiff(lines []string, width int) string {
+func (m Model) renderPanelDiff(lines []string, width int, pagerApplied bool) string {
 	if len(lines) == 0 || (len(lines) == 1 && strings.TrimSpace(lines[0]) == "") {
 		return activeTheme.DimText.Render("  " + m.emptyPanelDiffMessage())
 	}
 
 	var b strings.Builder
 	for i, line := range lines {
-		style := diffLineStyle(line)
-		rendered := style.Render(visualTruncate(line, width-2))
-		b.WriteString("  ")
-		b.WriteString(rendered)
+		if pagerApplied {
+			b.WriteString(line)
+		} else {
+			b.WriteString("  ")
+			style := diffLineStyle(line)
+			b.WriteString(style.Render(visualTruncate(line, width-2)))
+		}
 		if i < len(lines)-1 {
 			b.WriteString("\n")
 		}

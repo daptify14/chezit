@@ -19,9 +19,11 @@ type chezmoiStatusLoadedMsg struct {
 }
 
 type chezmoiDiffLoadedMsg struct {
-	path string
-	diff string
-	err  error
+	path         string
+	diff         string // raw unified diff
+	renderedDiff string // pager-colored output (empty if no pager or failed)
+	pagerApplied bool
+	err          error
 }
 
 type chezmoiActionDoneMsg struct {
@@ -59,9 +61,11 @@ type chezmoiForgetDoneMsg struct {
 }
 
 type chezmoiSourceContentMsg struct {
-	path    string
-	content string
-	err     error
+	path         string
+	content      string // raw content
+	renderedDiff string // pager-colored output (empty if not a diff or no pager)
+	pagerApplied bool
+	err          error
 }
 
 type chezmoiCapturedOutputMsg struct {
@@ -154,9 +158,11 @@ type templatePathsLoadedMsg struct {
 
 // panelContentLoadedMsg is sent when async panel content loading completes.
 type panelContentLoadedMsg struct {
-	path    string
-	mode    panelContentMode
-	section changesSection
-	content string
-	err     error
+	path         string
+	mode         panelContentMode
+	section      changesSection
+	content      string // raw content
+	rendered     string // pager-rendered output for diff mode (empty if no pager)
+	pagerApplied bool
+	err          error
 }

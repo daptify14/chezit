@@ -55,7 +55,11 @@ func (m *Model) annotateTemplateFiles() {
 func (m Model) loadDiffCmd(path string) tea.Cmd {
 	return func() tea.Msg {
 		diff, err := m.service.Diff(path)
-		return chezmoiDiffLoadedMsg{path: path, diff: diff, err: err}
+		if err != nil {
+			return chezmoiDiffLoadedMsg{path: path, diff: diff, err: err}
+		}
+		rendered, ok := m.renderDiffWithPager(diff)
+		return chezmoiDiffLoadedMsg{path: path, diff: diff, renderedDiff: rendered, pagerApplied: ok, err: err}
 	}
 }
 
@@ -290,7 +294,11 @@ func (m Model) gitResetAllCmd() tea.Cmd {
 func (m Model) loadGitDiffCmd(path string, staged bool) tea.Cmd {
 	return func() tea.Msg {
 		diff, err := m.service.GitDiff(path, staged)
-		return chezmoiDiffLoadedMsg{path: path, diff: diff, err: err}
+		if err != nil {
+			return chezmoiDiffLoadedMsg{path: path, diff: diff, err: err}
+		}
+		rendered, ok := m.renderDiffWithPager(diff)
+		return chezmoiDiffLoadedMsg{path: path, diff: diff, renderedDiff: rendered, pagerApplied: ok, err: err}
 	}
 }
 

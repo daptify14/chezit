@@ -42,15 +42,11 @@ func (m Model) handleDiffKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, ChezSharedKeys.Back):
 			m.diff.previewApply = false
 			m.view = StatusScreen
-			m.diff.content = ""
-			m.diff.lines = nil
-			m.diff.resetViewport()
+			m.diff.clear()
 			return m, nil
 		case key.Matches(msg, ChezCommandKeys.Run): // Enter
 			m.diff.previewApply = false
-			m.diff.content = ""
-			m.diff.lines = nil
-			m.diff.resetViewport()
+			m.diff.clear()
 			m.actions.show = false
 			m = m.showConfirmScreen(chezmoiActionApplyAll, "apply all changes to destination")
 			m.overlays.applyWrapTTY = true
@@ -62,9 +58,7 @@ func (m Model) handleDiffKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	switch {
 	case key.Matches(msg, ChezSharedKeys.Back):
 		m.view = StatusScreen
-		m.diff.content = ""
-		m.diff.lines = nil
-		m.diff.resetViewport()
+		m.diff.clear()
 		m.actions.show = false
 		return m, nil
 
@@ -93,7 +87,7 @@ func (m Model) syncDiffViewportContent() Model {
 	}
 	diffHeight := m.chezmoiDiffViewHeight()
 	m.diff.ensureViewport(m.effectiveWidth(), diffHeight)
-	content := preRenderDiffContent(m.diff.lines, m.effectiveWidth())
+	content := preRenderDiffContent(m.diff.lines, m.effectiveWidth(), m.diff.pagerApplied)
 	currentOffset := m.diff.viewport.YOffset()
 	m.diff.viewport.SetContent(content)
 	m.diff.viewport.SetYOffset(currentOffset)

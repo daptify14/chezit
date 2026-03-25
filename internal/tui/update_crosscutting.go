@@ -22,7 +22,14 @@ func (m Model) handleDiffLoaded(msg chezmoiDiffLoadedMsg) (tea.Model, tea.Cmd) {
 	m.view = DiffScreen
 	m.diff.content = msg.diff
 	m.diff.path = msg.path
-	m.diff.lines = strings.Split(msg.diff, "\n")
+	m.diff.rawLines = strings.Split(msg.diff, "\n")
+	if msg.pagerApplied {
+		m.diff.lines = strings.Split(msg.renderedDiff, "\n")
+		m.diff.pagerApplied = true
+	} else {
+		m.diff.lines = m.diff.rawLines
+		m.diff.pagerApplied = false
+	}
 	m.diff.resetViewport()
 	m.actions.show = false
 	return m, nil
@@ -87,7 +94,14 @@ func (m Model) handleSourceContent(msg chezmoiSourceContentMsg) (tea.Model, tea.
 	m.view = DiffScreen
 	m.diff.content = msg.content
 	m.diff.path = msg.path
-	m.diff.lines = strings.Split(msg.content, "\n")
+	m.diff.rawLines = strings.Split(msg.content, "\n")
+	if msg.pagerApplied {
+		m.diff.lines = strings.Split(msg.renderedDiff, "\n")
+		m.diff.pagerApplied = true
+	} else {
+		m.diff.lines = m.diff.rawLines
+		m.diff.pagerApplied = false
+	}
 	m.diff.resetViewport()
 	m.actions.show = false
 	return m, nil
@@ -111,7 +125,9 @@ func (m Model) handleCapturedOutput(msg chezmoiCapturedOutputMsg) (tea.Model, te
 	m.view = DiffScreen
 	m.diff.content = msg.output
 	m.diff.path = msg.label
-	m.diff.lines = strings.Split(msg.output, "\n")
+	m.diff.rawLines = strings.Split(msg.output, "\n")
+	m.diff.lines = m.diff.rawLines
+	m.diff.pagerApplied = false
 	m.diff.resetViewport()
 	m.actions.show = false
 	m.panel.clearCache()
@@ -178,9 +194,7 @@ func (m Model) handleExecDone(msg chezmoiExecDoneMsg) (tea.Model, tea.Cmd) {
 	}
 	if m.view == DiffScreen {
 		m.view = StatusScreen
-		m.diff.content = ""
-		m.diff.lines = nil
-		m.diff.resetViewport()
+		m.diff.clear()
 	}
 	if !reload {
 		return m, nil

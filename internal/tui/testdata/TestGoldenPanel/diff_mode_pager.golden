@@ -1,0 +1,5 @@
+│ .bashrc [diff]  +1/-0 lines
+│   - on disk  + source
+│ .bashrc │ 1 +
+│  1 │ export EDITOR=vim
+│  2 │ export PAGER=less

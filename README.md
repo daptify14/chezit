@@ -178,6 +178,18 @@ Defaults are shown in the YAML example above.
 | `commit_presets` | list of strings | Optional preset commit messages shown in the commit flow. |
 | `binary_path` | path to `chezmoi` binary (`~` supported) | Set only if `chezmoi` is not on `PATH`. |
 
+## Diff Pager Support
+
+chezit respects chezmoi's `diff.pager` setting. When a supported pager is configured, all diff surfaces (drift, git, apply preview, panel, full-screen) use the pager's styling instead of chezit's built-in coloring.
+
+```toml
+# ~/.config/chezmoi/chezmoi.toml
+[diff]
+    pager = "delta"
+```
+
+Supported pagers: `delta`, `bat`, `diff-so-fancy`. If the configured pager is missing or fails, chezit falls back silently to built-in styling. To request support for a new pager, open an issue or PR.
+
 ## Development
 
 Requires Go 1.26+ and [task](https://taskfile.dev/). Uses Bubble Tea v2, Lip Gloss v2, and Bubbles v2. Huh v2 is still pre-release.
