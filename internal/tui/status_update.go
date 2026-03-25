@@ -243,7 +243,11 @@ func (m Model) handleStatusEnter(row changesRow) (tea.Model, tea.Cmd) {
 			m.ui.message = ""
 			return m, tea.Batch(m.ui.loadingSpinner.Tick, func() tea.Msg {
 				content, err := m.service.GitShow(row.commit.Hash)
-				return chezmoiDiffLoadedMsg{path: row.commit.Hash, diff: content, err: err}
+				if err != nil {
+					return chezmoiDiffLoadedMsg{path: row.commit.Hash, diff: content, err: err}
+				}
+				rendered, ok := m.renderDiffWithPager(content)
+				return chezmoiDiffLoadedMsg{path: row.commit.Hash, diff: content, renderedDiff: rendered, pagerApplied: ok}
 			})
 		}
 	}

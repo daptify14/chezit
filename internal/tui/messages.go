@@ -19,9 +19,11 @@ type chezmoiStatusLoadedMsg struct {
 }
 
 type chezmoiDiffLoadedMsg struct {
-	path string
-	diff string
-	err  error
+	path         string
+	diff         string // raw unified diff
+	renderedDiff string // pager-colored output (empty if no pager or failed)
+	pagerApplied bool
+	err          error
 }
 
 type chezmoiActionDoneMsg struct {

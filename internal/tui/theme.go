@@ -52,6 +52,8 @@ type Theme struct {
 	Panel lipgloss.Style
 
 	ChromaStyleName string
+
+	IsDark bool
 }
 
 var activeTheme = ThemeDark()
@@ -150,6 +152,7 @@ func newTheme(flavor catppuccin.Flavor, isDark bool) Theme {
 		SubtleText: lipgloss.Color(flavor.Subtext0().Hex),
 
 		ChromaStyleName: chromaStyle,
+		IsDark:          isDark,
 	}
 
 	t.Selected = lipgloss.NewStyle().

@@ -298,7 +298,9 @@ func isApplyAction(action chezmoiAction) bool {
 type diffViewState struct {
 	content       string
 	path          string
-	lines         []string
+	lines         []string // rendered lines for viewport (pager-colored or raw)
+	rawLines      []string // canonical raw unified diff lines (for diffSummary)
+	pagerApplied  bool
 	sourceSection changesSection
 	previewApply  bool
 	viewport      viewport.Model
@@ -326,6 +328,15 @@ func (d *diffViewState) ensureViewport(width, height int) {
 // resetViewport marks the viewport as uninitialized so it will be recreated on next use.
 func (d *diffViewState) resetViewport() {
 	d.viewportReady = false
+}
+
+// clear resets all diff view state fields.
+func (d *diffViewState) clear() {
+	d.content = ""
+	d.lines = nil
+	d.rawLines = nil
+	d.pagerApplied = false
+	d.resetViewport()
 }
 
 // filesSearchMetrics captures per-run deep-search telemetry for debugging/tests.

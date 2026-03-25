@@ -43,7 +43,7 @@ func (m Model) renderDiffView() string {
 		diffHeight := m.chezmoiDiffViewHeight()
 		m.diff.ensureViewport(m.effectiveWidth(), diffHeight)
 
-		content := preRenderDiffContent(m.diff.lines, m.effectiveWidth())
+		content := preRenderDiffContent(m.diff.lines, m.effectiveWidth(), m.diff.pagerApplied)
 		offset := m.diff.viewport.YOffset()
 		m.diff.viewport.SetContent(content)
 		m.diff.viewport.SetYOffset(offset)
@@ -128,7 +128,7 @@ func applyConfirmDescription(action chezmoiAction, force bool) string {
 }
 
 func (m Model) renderChezmoiDiffStatus() string {
-	summary := diffSummary(m.diff.lines)
+	summary := diffSummary(m.diffRawLines())
 	if hint := diffDirectionHint(m.diff.sourceSection); hint != "" {
 		summary = summary + " | " + hint
 	}

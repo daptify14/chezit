@@ -22,7 +22,14 @@ func (m Model) handleDiffLoaded(msg chezmoiDiffLoadedMsg) (tea.Model, tea.Cmd) {
 	m.view = DiffScreen
 	m.diff.content = msg.diff
 	m.diff.path = msg.path
-	m.diff.lines = strings.Split(msg.diff, "\n")
+	m.diff.rawLines = strings.Split(msg.diff, "\n")
+	if msg.pagerApplied {
+		m.diff.lines = strings.Split(msg.renderedDiff, "\n")
+		m.diff.pagerApplied = true
+	} else {
+		m.diff.lines = m.diff.rawLines
+		m.diff.pagerApplied = false
+	}
 	m.diff.resetViewport()
 	m.actions.show = false
 	return m, nil
@@ -178,9 +185,7 @@ func (m Model) handleExecDone(msg chezmoiExecDoneMsg) (tea.Model, tea.Cmd) {
 	}
 	if m.view == DiffScreen {
 		m.view = StatusScreen
-		m.diff.content = ""
-		m.diff.lines = nil
-		m.diff.resetViewport()
+		m.diff.clear()
 	}
 	if !reload {
 		return m, nil

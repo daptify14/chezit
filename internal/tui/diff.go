@@ -9,13 +9,18 @@ import (
 
 // preRenderDiffContent renders all diff lines into a single styled string
 // suitable for viewport.SetContent(). The viewport handles scroll/visibility.
-func preRenderDiffContent(lines []string, width int) string {
+// When pagerApplied is true, lines already contain ANSI colors from an external
+// pager and are rendered as-is with only truncation/padding.
+func preRenderDiffContent(lines []string, width int, pagerApplied bool) string {
 	var b strings.Builder
 	for i, line := range lines {
-		style := diffLineStyle(line)
-		rendered := style.Render(visualTruncate(line, width-2))
 		b.WriteString("  ")
-		b.WriteString(rendered)
+		if pagerApplied {
+			b.WriteString(visualTruncate(line, width-2))
+		} else {
+			style := diffLineStyle(line)
+			b.WriteString(style.Render(visualTruncate(line, width-2)))
+		}
 		if i < len(lines)-1 {
 			b.WriteString("\n")
 		}
