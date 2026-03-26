@@ -89,8 +89,10 @@ func runTUI(initialTab string) error {
 	}
 
 	var diffPagerCmd string
-	if diffCfg, err := svc.DiffConfig(); err == nil {
-		diffPagerCmd = diffCfg.Pager
+	if !cfg.DiffBuiltin {
+		if diffCfg, err := svc.DiffConfig(); err == nil {
+			diffPagerCmd = diffCfg.Pager
+		}
 	}
 
 	opts := tui.Options{

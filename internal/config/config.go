@@ -37,6 +37,7 @@ type Config struct {
 	Mode          Mode     `yaml:"mode"`
 	BinaryPath    string   `yaml:"binary_path"`
 	CommitPresets []string `yaml:"commit_presets"`
+	DiffBuiltin   bool     `yaml:"diff_builtin"`
 }
 
 func Default() Config {

@@ -76,6 +76,33 @@ commit_presets:
 	}
 }
 
+func TestLoadFromParsesDiffBuiltin(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	if err := os.WriteFile(path, []byte(`
+diff_builtin: true
+`), 0o600); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	cfg, err := LoadFrom(path)
+	if err != nil {
+		t.Fatalf("LoadFrom: %v", err)
+	}
+	if !cfg.DiffBuiltin {
+		t.Fatalf("expected diff_builtin true, got false")
+	}
+}
+
+func TestLoadFromDiffBuiltinDefaultsFalse(t *testing.T) {
+	cfg, err := LoadFrom(filepath.Join(t.TempDir(), "missing.yaml"))
+	if err != nil {
+		t.Fatalf("LoadFrom: %v", err)
+	}
+	if cfg.DiffBuiltin {
+		t.Fatalf("expected diff_builtin default false, got true")
+	}
+}
+
 func TestNormalizeIconsTrimsAndLowercases(t *testing.T) {
 	cfg := Config{
 		Icons: "  NerdFont  ",
