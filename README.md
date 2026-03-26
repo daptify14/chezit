@@ -164,6 +164,7 @@ mode: write          # write | read_only
 panel: auto          # auto | show | hide
 commit_presets: []   # e.g. ["dotfiles: update config"]
 binary_path: ""      # e.g. /opt/homebrew/bin/chezmoi (only needed when chezmoi is not on $PATH)
+diff_builtin: false  # true = ignore chezmoi diff.pager and use chezit's built-in diff rendering
 ```
 
 Colors adapt automatically to your terminal background (dark or light) at startup using Catppuccin palettes.
@@ -177,6 +178,7 @@ Defaults are shown in the YAML example above.
 | `panel` | `auto`, `show`, `hide` | `auto` shows the preview only when terminal width allows. |
 | `commit_presets` | list of strings | Optional preset commit messages shown in the commit flow. |
 | `binary_path` | path to `chezmoi` binary (`~` supported) | Set only if `chezmoi` is not on `PATH`. |
+| `diff_builtin` | `true`, `false` | When `true`, bypass chezmoi's `diff.pager` and use chezit's built-in diff rendering instead. |
 
 ## Diff Pager Support
 
@@ -189,6 +191,8 @@ chezit respects chezmoi's `diff.pager` setting. When a supported pager is config
 ```
 
 Supported pagers: `delta`, `bat`, `diff-so-fancy`. If the configured pager is missing or fails, chezit falls back silently to built-in styling. To request support for a new pager, open an issue or PR.
+
+If you want to keep a pager configured for regular `chezmoi` CLI use but bypass it in chezit, set `diff_builtin: true` in `~/.config/chezit/config.yaml`. chezit will use its built-in diff rendering instead. This only affects chezit.
 
 ## Development
 
