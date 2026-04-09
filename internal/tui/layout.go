@@ -4,10 +4,14 @@ package tui
 
 // Layout constants shared between rendering and mouse-hit-testing.
 const (
+	// commonHeaderLines is the number of header rows for all tabs
+	// tabs: breadcrumb + separator + tab bar + padding
+	commonHeaderLines = 3
+
 	// statusFilesHeaderLines is the number of header rows above the list
 	// in the Status and Files tabs: breadcrumb + separator + tab bar +
 	// search box + git header + summary line.
-	statusFilesHeaderLines = 7
+	statusFilesHeaderLines = commonHeaderLines + 4
 
 	// statusFilesFooterLines is the number of footer rows below the list:
 	// status bar + help line.

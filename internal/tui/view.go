@@ -69,22 +69,23 @@ func (m Model) View() tea.View {
 	b.WriteString(renderSeparator(m.effectiveWidth()))
 	b.WriteString("\n")
 	b.WriteString(m.renderChezmoiTabBar())
-	b.WriteString("\n")
 
+	var tabContent string
 	switch m.activeTabName() {
 	case "Status":
-		b.WriteString(m.renderChangesTabWithPanel())
+		tabContent = m.renderChangesTabWithPanel()
 	case "Files":
-		b.WriteString(m.renderManagedTabWithPanel())
+		tabContent = m.renderManagedTabWithPanel()
 	case "Info":
-		b.WriteString(m.renderInfoTabContent())
+		tabContent = m.renderInfoTabContent()
 	case "Commands":
-		b.WriteString(m.renderCommandsTabContent())
+		tabContent = m.renderCommandsTabContent()
 	}
 
-	b.WriteString("\n")
-	b.WriteString(m.renderChezmoiTabStatus())
-	v.Content = lipgloss.Place(m.width, m.height, lipgloss.Left, lipgloss.Top, b.String())
+	statusBar := m.renderChezmoiTabStatus()
+	contentHeight := m.height - commonHeaderLines - statusFilesFooterLines
+	content := lipgloss.Place(m.width, contentHeight, lipgloss.Left, lipgloss.Top, tabContent)
+	v.Content = lipgloss.JoinVertical(lipgloss.Top, b.String(), content, statusBar)
 	return v
 }
 
