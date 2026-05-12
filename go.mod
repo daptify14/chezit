@@ -1,6 +1,6 @@
 module github.com/daptify14/chezit
 
-go 1.26.2
+go 1.26.3
 
 require (
 	charm.land/bubbles/v2 v2.1.0
@@ -11,9 +11,9 @@ require (
 	github.com/catppuccin/go v0.3.0
 	github.com/charlievieth/fastwalk v1.0.14
 	github.com/charmbracelet/x/ansi v0.11.7
-	github.com/charmbracelet/x/exp/golden v0.0.0-20260315003922-bbd79dac4a98
+	github.com/charmbracelet/x/exp/golden v0.0.0-20260511125431-fe5d686e0c99
 	github.com/epilande/go-devicons v0.0.0-20250505162540-0661cab71a28
-	github.com/sahilm/fuzzy v0.1.1
+	github.com/sahilm/fuzzy v0.1.2
 	github.com/spf13/cobra v1.10.2
 	gopkg.in/yaml.v3 v3.0.1
 )
