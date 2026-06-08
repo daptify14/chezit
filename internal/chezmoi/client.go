@@ -73,6 +73,13 @@ func (c *Client) binary() string {
 	return c.BinaryPath
 }
 
+func (c *Client) configFlags() []string {
+	if c.ConfigPath == "" {
+		return nil
+	}
+	return []string{"--config", c.ConfigPath}
+}
+
 // baseFlags returns flags injected into every non-interactive command.
 // These ensure machine-parseable output with no TTY prompts, pager, color
 // codes, progress bars, or external diff tool interference.
@@ -84,10 +91,13 @@ func (c *Client) baseFlags() []string {
 		"--progress=false",
 		"--use-builtin-diff",
 	}
-	if c.ConfigPath != "" {
-		flags = append(flags, "--config", c.ConfigPath)
-	}
+	flags = append(flags, c.configFlags()...)
 	return flags
+}
+
+func (c *Client) command(args ...string) *exec.Cmd {
+	allArgs := append(c.configFlags(), args...)
+	return exec.Command(c.binary(), allArgs...)
 }
 
 func (c *Client) cmd(args ...string) (*exec.Cmd, context.CancelFunc) {
@@ -356,35 +366,35 @@ func (c *Client) GitRoot() (string, error) {
 }
 
 func (c *Client) ApplyRefreshCmd() *exec.Cmd {
-	return exec.Command(c.binary(), "apply", "--refresh-externals")
+	return c.command("apply", "--refresh-externals")
 }
 
 func (c *Client) ApplyCmd(filePath string) *exec.Cmd {
-	return exec.Command(c.binary(), "apply", filePath)
+	return c.command("apply", filePath)
 }
 
 func (c *Client) ApplyAllCmd() *exec.Cmd {
-	return exec.Command(c.binary(), "apply")
+	return c.command("apply")
 }
 
 func (c *Client) ApplyForceCmd(filePath string) *exec.Cmd {
-	return exec.Command(c.binary(), "apply", "--force", filePath)
+	return c.command("apply", "--force", filePath)
 }
 
 func (c *Client) ApplyAllForceCmd() *exec.Cmd {
-	return exec.Command(c.binary(), "apply", "--force")
+	return c.command("apply", "--force")
 }
 
 func (c *Client) ApplyDryRunCmd() *exec.Cmd {
-	return exec.Command(c.binary(), "apply", "--dry-run", "-v")
+	return c.command("apply", "--dry-run", "-v")
 }
 
 func (c *Client) ApplyRefreshDryRunCmd() *exec.Cmd {
-	return exec.Command(c.binary(), "apply", "--refresh-externals", "--dry-run", "-v")
+	return c.command("apply", "--refresh-externals", "--dry-run", "-v")
 }
 
 func (c *Client) UpdateCmd() *exec.Cmd {
-	return exec.Command(c.binary(), "update")
+	return c.command("update")
 }
 
 // Forget runs `chezmoi forget --force`.
@@ -412,7 +422,7 @@ func (c *Client) applyEditorEnv(cmd *exec.Cmd) {
 }
 
 func (c *Client) EditCmd(filePath string) *exec.Cmd {
-	cmd := exec.Command(c.binary(), "edit", filePath)
+	cmd := c.command("edit", filePath)
 	c.applyEditorEnv(cmd)
 	return cmd
 }
@@ -520,7 +530,7 @@ func (c *Client) GitBranchInfo() (GitInfo, error) {
 }
 
 func (c *Client) EditSourceCmd() *exec.Cmd {
-	cmd := exec.Command(c.binary(), "edit")
+	cmd := c.command("edit")
 	c.applyEditorEnv(cmd)
 	return cmd
 }
@@ -539,7 +549,7 @@ func (c *Client) Doctor() (string, error) {
 }
 
 func (c *Client) EditConfigCmd() *exec.Cmd {
-	cmd := exec.Command(c.binary(), "edit-config")
+	cmd := c.command("edit-config")
 	c.applyEditorEnv(cmd)
 	return cmd
 }
@@ -709,13 +719,13 @@ func (c *Client) CatConfig() (string, error) {
 }
 
 func (c *Client) InitCmd() *exec.Cmd {
-	return exec.Command(c.binary(), "init")
+	return c.command("init")
 }
 
 // EditConfigTemplateCmd opens `chezmoi edit-config-template`.
 // If no template exists, chezmoi creates one from the current config.
 func (c *Client) EditConfigTemplateCmd() *exec.Cmd {
-	cmd := exec.Command(c.binary(), "edit-config-template")
+	cmd := c.command("edit-config-template")
 	c.applyEditorEnv(cmd)
 	return cmd
 }
