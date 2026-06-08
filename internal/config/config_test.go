@@ -24,6 +24,7 @@ func TestLoadFromParsesFlatConfig(t *testing.T) {
 	if err := os.WriteFile(path, []byte(`
 mode: read_only
 binary_path: ~/bin/chezmoi-edge
+chezmoi_config_path: ~/.config/chezmoi/work.toml
 commit_presets:
   - "from chezmoi"
 `), 0o600); err != nil {
@@ -39,6 +40,9 @@ commit_presets:
 	}
 	if cfg.BinaryPath == "~/bin/chezmoi-edge" || cfg.BinaryPath == "" {
 		t.Fatalf("expected expanded binary path, got %q", cfg.BinaryPath)
+	}
+	if cfg.ChezmoiConfig == "~/.config/chezmoi/work.toml" || cfg.ChezmoiConfig == "" {
+		t.Fatalf("expected expanded chezmoi config path, got %q", cfg.ChezmoiConfig)
 	}
 	if len(cfg.CommitPresets) != 1 || cfg.CommitPresets[0] != "from chezmoi" {
 		t.Fatalf("unexpected commit presets: %#v", cfg.CommitPresets)

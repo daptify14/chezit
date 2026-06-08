@@ -65,7 +65,10 @@ func runTUI(initialTab string) error {
 		return fmt.Errorf("error loading config: %w", err)
 	}
 
-	client := chezmoi.New(chezmoi.WithBinaryPath(cfg.BinaryPath))
+	client := chezmoi.New(
+		chezmoi.WithBinaryPath(cfg.BinaryPath),
+		chezmoi.WithConfigPath(cfg.ChezmoiConfig),
+	)
 	tp, err := client.TargetPath()
 	if err != nil {
 		return fmt.Errorf("could not determine chezmoi target path: %w", err)

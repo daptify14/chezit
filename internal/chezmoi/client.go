@@ -19,6 +19,7 @@ import (
 type Client struct {
 	Timeout    time.Duration
 	BinaryPath string
+	ConfigPath string
 	Editor     string
 }
 
@@ -33,6 +34,12 @@ func WithTimeout(d time.Duration) Option {
 func WithBinaryPath(path string) Option {
 	return func(c *Client) {
 		c.BinaryPath = strings.TrimSpace(path)
+	}
+}
+
+func WithConfigPath(path string) Option {
+	return func(c *Client) {
+		c.ConfigPath = strings.TrimSpace(path)
 	}
 }
 
@@ -70,13 +77,17 @@ func (c *Client) binary() string {
 // These ensure machine-parseable output with no TTY prompts, pager, color
 // codes, progress bars, or external diff tool interference.
 func (c *Client) baseFlags() []string {
-	return []string{
+	flags := []string{
 		"--no-tty",
 		"--color=false",
 		"--no-pager",
 		"--progress=false",
 		"--use-builtin-diff",
 	}
+	if c.ConfigPath != "" {
+		flags = append(flags, "--config", c.ConfigPath)
+	}
+	return flags
 }
 
 func (c *Client) cmd(args ...string) (*exec.Cmd, context.CancelFunc) {

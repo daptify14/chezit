@@ -164,6 +164,7 @@ mode: write          # write | read_only
 panel: auto          # auto | show | hide
 commit_presets: []   # e.g. ["dotfiles: update config"]
 binary_path: ""      # e.g. /opt/homebrew/bin/chezmoi (only needed when chezmoi is not on $PATH)
+chezmoi_config_path: "" # optional custom chezmoi config file path (equivalent to --config)
 diff_builtin: false  # true = ignore chezmoi diff.pager and use chezit's built-in diff rendering
 ```
 
@@ -178,6 +179,7 @@ Defaults are shown in the YAML example above.
 | `panel` | `auto`, `show`, `hide` | `auto` shows the preview only when terminal width allows. |
 | `commit_presets` | list of strings | Optional preset commit messages shown in the commit flow. |
 | `binary_path` | path to `chezmoi` binary (`~` supported) | Set only if `chezmoi` is not on `PATH`. |
+| `chezmoi_config_path` | path to chezmoi config file (`~` supported) | Optional. Use to force chezit to run every chezmoi command with `--config <path>`. |
 | `diff_builtin` | `true`, `false` | When `true`, bypass chezmoi's `diff.pager` and use chezit's built-in diff rendering instead. |
 
 ## Diff Pager Support

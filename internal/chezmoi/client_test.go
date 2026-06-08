@@ -29,6 +29,23 @@ func TestClientBaseFlagsContents(t *testing.T) {
 	}
 }
 
+func TestClientBaseFlagsIncludesConfigPath(t *testing.T) {
+	client := New(WithConfigPath("/tmp/chezmoi.toml"))
+	flags := client.baseFlags()
+
+	hasConfig := false
+	for i := 0; i < len(flags)-1; i++ {
+		if flags[i] == "--config" && flags[i+1] == "/tmp/chezmoi.toml" {
+			hasConfig = true
+			break
+		}
+	}
+
+	if !hasConfig {
+		t.Fatalf("expected --config flag with custom path, got %v", flags)
+	}
+}
+
 func TestClientCmdInjectsBaseFlags(t *testing.T) {
 	binaryPath := writeFakeChezmoiRawArgsBinary(t)
 
@@ -46,6 +63,24 @@ func TestClientCmdInjectsBaseFlags(t *testing.T) {
 	}
 	if !strings.Contains(args, "status") {
 		t.Errorf("expected subcommand 'status' in args, got: %s", args)
+	}
+}
+
+func TestClientCmdInjectsConfigPathFlag(t *testing.T) {
+	binaryPath := writeFakeChezmoiRawArgsBinary(t)
+
+	client := New(
+		WithBinaryPath(binaryPath),
+		WithConfigPath("/tmp/custom.toml"),
+	)
+	output, err := client.run("status")
+	if err != nil {
+		t.Fatalf("run returned unexpected error: %v", err)
+	}
+
+	args := strings.TrimSpace(string(output))
+	if !strings.Contains(args, "--config /tmp/custom.toml") {
+		t.Fatalf("expected custom config flag in args, got: %s", args)
 	}
 }
 

@@ -36,6 +36,7 @@ type Config struct {
 	Icons         string   `yaml:"icons"` // "nerdfont" (default), "unicode", "none"
 	Mode          Mode     `yaml:"mode"`
 	BinaryPath    string   `yaml:"binary_path"`
+	ChezmoiConfig string   `yaml:"chezmoi_config_path"`
 	CommitPresets []string `yaml:"commit_presets"`
 	DiffBuiltin   bool     `yaml:"diff_builtin"`
 }
@@ -57,6 +58,11 @@ func (c *Config) Normalize() {
 	c.BinaryPath = strings.TrimSpace(c.BinaryPath)
 	if c.BinaryPath != "" {
 		c.BinaryPath = expandPath(c.BinaryPath)
+	}
+
+	c.ChezmoiConfig = strings.TrimSpace(c.ChezmoiConfig)
+	if c.ChezmoiConfig != "" {
+		c.ChezmoiConfig = expandPath(c.ChezmoiConfig)
 	}
 	if len(c.CommitPresets) > 0 {
 		c.CommitPresets = normalizeStringList(c.CommitPresets)
