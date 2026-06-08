@@ -36,7 +36,7 @@ func TestClientBaseFlagsIncludesConfigPath(t *testing.T) {
 	flags := client.baseFlags()
 
 	hasConfig := false
-	for i := 0; i < len(flags)-1; i++ {
+	for i := range len(flags) - 1 {
 		if flags[i] == "--config" && flags[i+1] == "/tmp/chezmoi.toml" {
 			hasConfig = true
 			break
