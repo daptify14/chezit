@@ -3,8 +3,8 @@ module github.com/daptify14/chezit
 go 1.26.6
 
 require (
-	charm.land/bubbles/v2 v2.1.1
-	charm.land/bubbletea/v2 v2.0.8
+	charm.land/bubbles/v2 v2.2.1
+	charm.land/bubbletea/v2 v2.0.9
 	charm.land/huh/v2 v2.0.3
 	charm.land/lipgloss/v2 v2.0.6
 	github.com/alecthomas/chroma/v2 v2.27.0
@@ -35,7 +35,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
-	github.com/mattn/go-runewidth v0.0.24 // indirect
+	github.com/mattn/go-runewidth v0.0.27 // indirect
 	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
