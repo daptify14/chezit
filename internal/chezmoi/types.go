@@ -1,9 +1,6 @@
 package chezmoi
 
-import (
-	"os/exec"
-	"strings"
-)
+import "strings"
 
 // EntryType values map to chezmoi --include/--exclude flags.
 type EntryType string
@@ -159,84 +156,6 @@ type GitInfo struct {
 type GitCommit struct {
 	Hash    string // abbreviated commit hash
 	Message string // first line of commit message
-}
-
-// InteractiveCmd wraps commands that require TTY (edit, apply, update).
-type InteractiveCmd struct {
-	Cmd *exec.Cmd
-}
-
-// --- Service-level types ---
-
-type StatusSnapshot struct {
-	Files    []FileStatus
-	Staged   []GitFile
-	Unstaged []GitFile
-	GitInfo  GitInfo
-}
-
-type FileKind int
-
-const (
-	FileKindManaged FileKind = iota
-	FileKindIgnored
-	FileKindUnmanaged
-)
-
-type LoadFilesRequest struct {
-	Kind        FileKind
-	EntryFilter EntryFilter
-}
-
-type FilesSnapshot struct {
-	Kind  FileKind
-	Files []string
-}
-
-type InfoView int
-
-const (
-	InfoViewConfig InfoView = iota // cat-config
-	InfoViewFull                   // dump-config
-	InfoViewData                   // template data
-	InfoViewDoctor                 // health check
-)
-
-type LoadInfoRequest struct {
-	View   InfoView
-	Format string // "yaml" or "json"
-}
-
-type InfoSnapshot struct {
-	View    InfoView
-	Content string
-}
-
-type ActionKind int
-
-const (
-	ActionReAdd ActionKind = iota
-	ActionReAddAll
-	ActionForget
-	ActionAdd
-	ActionGitAdd
-	ActionGitAddAll
-	ActionGitReset
-	ActionGitResetAll
-	ActionGitCommit
-	ActionGitPush
-)
-
-type ActionRequest struct {
-	Kind       ActionKind
-	Path       string
-	AddOptions AddOptions
-	CommitMsg  string
-}
-
-type ActionResult struct {
-	Kind    ActionKind
-	Message string
 }
 
 type CommandAvailability struct {

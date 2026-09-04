@@ -86,55 +86,6 @@ func (s *Service) GitPull() error {
 	return s.client.GitPull()
 }
 
-// --- Aggregated read operations ---
-
-// LoadStatus combines chezmoi status with git status (skips git in read-only mode).
-func (s *Service) LoadStatus() (StatusSnapshot, error) {
-	files, err := s.client.Status()
-	if err != nil {
-		return StatusSnapshot{}, err
-	}
-	snap := StatusSnapshot{Files: files}
-
-	if !s.policy.IsReadOnly() {
-		staged, unstaged, gitErr := s.client.GitStatusFiles()
-		if gitErr == nil {
-			snap.Staged = staged
-			snap.Unstaged = unstaged
-			info, _ := s.client.GitBranchInfo()
-			snap.GitInfo = info
-		}
-	}
-	return snap, nil
-}
-
-func (s *Service) LoadInfo(req LoadInfoRequest) (InfoSnapshot, error) {
-	var content string
-	var err error
-	switch req.View {
-	case InfoViewConfig:
-		content, err = s.client.CatConfig()
-	case InfoViewFull:
-		if req.Format == "json" {
-			content, err = s.client.DumpConfigJSON()
-		} else {
-			content, err = s.client.DumpConfig()
-		}
-	case InfoViewData:
-		if req.Format == "json" {
-			content, err = s.client.DataJSON()
-		} else {
-			content, err = s.client.Data()
-		}
-	case InfoViewDoctor:
-		content, err = s.client.Doctor()
-	}
-	if err != nil {
-		return InfoSnapshot{}, err
-	}
-	return InfoSnapshot{View: req.View, Content: content}, nil
-}
-
 // --- Mutation operations (all check policy.CheckMutation before delegating) ---
 
 func (s *Service) ReAdd(path string) error {
