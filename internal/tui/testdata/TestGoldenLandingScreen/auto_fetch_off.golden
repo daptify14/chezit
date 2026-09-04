@@ -27,4 +27,4 @@
                                3   Info          View configuration, data, and diagnostics
                                4   Commands      Run common chezmoi operations
 
-                                       ↑/↓ navigate  1-4 jump  enter open  q quit
+                                   ↑/↓ navigate  1-4 jump  enter open  f fetch  q quit

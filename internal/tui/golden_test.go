@@ -180,24 +180,27 @@ func TestGoldenDiffView(t *testing.T) {
 
 func TestGoldenLandingScreen(t *testing.T) {
 	cases := []struct {
-		name string
-		opts []TestModelOption
+		name    string
+		opts    []TestModelOption
+		message string
 	}{
-		{"in_sync_fetched", []TestModelOption{WithGitSync(chezmoi.GitSyncSynced, 0, 0), WithFetchState(fetchOK, "", false)}},
-		{"checking", []TestModelOption{WithGitSync(chezmoi.GitSyncSynced, 0, 0), WithFetchState(fetchNotStarted, "", true)}},
-		{"unreachable", []TestModelOption{WithGitSync(chezmoi.GitSyncSynced, 0, 0), WithFetchState(fetchFailed, "unreachable", false)}},
-		{"no_upstream", []TestModelOption{WithGitSync(chezmoi.GitSyncNoUpstream, 0, 0)}},
-		{"auto_fetch_off", []TestModelOption{WithGitSync(chezmoi.GitSyncSynced, 0, 0), WithFetchState(fetchOff, "", false)}},
+		{"in_sync_fetched", []TestModelOption{WithGitSync(chezmoi.GitSyncSynced, 0, 0), WithFetchState(fetchOK, "", false)}, ""},
+		{"checking", []TestModelOption{WithGitSync(chezmoi.GitSyncSynced, 0, 0), WithFetchState(fetchNotStarted, "", true)}, ""},
+		{"unreachable", []TestModelOption{WithGitSync(chezmoi.GitSyncSynced, 0, 0), WithFetchState(fetchFailed, "unreachable", false)}, ""},
+		{"no_upstream", []TestModelOption{WithGitSync(chezmoi.GitSyncNoUpstream, 0, 0)}, ""},
+		{"no_upstream_after_f", []TestModelOption{WithGitSync(chezmoi.GitSyncNoUpstream, 0, 0)}, "no upstream configured"},
+		{"auto_fetch_off", []TestModelOption{WithGitSync(chezmoi.GitSyncSynced, 0, 0), WithFetchState(fetchOff, "", false)}, ""},
 		{"changes_pending", []TestModelOption{
 			WithGitSync(chezmoi.GitSyncDiverged, 1, 2),
 			WithFetchState(fetchOK, "", false),
 			WithDriftFiles([]chezmoi.FileStatus{{Path: "/home/test/.bashrc", SourceStatus: 'M', DestStatus: ' '}}),
-		}},
+		}, ""},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			m := newTestModel(append([]TestModelOption{WithView(LandingScreen)}, tc.opts...)...)
 			m.landing.statsReady = true
+			m.ui.message = tc.message
 			output := stripForGolden(m.renderLandingScreen())
 			golden.RequireEqual(t, []byte(output))
 		})

@@ -115,3 +115,52 @@ func TestSummaryBoxAlwaysFourRows(t *testing.T) {
 		})
 	}
 }
+
+func TestLandingFetchKeyStartsFetch(t *testing.T) {
+	m := newTestModel(WithView(LandingScreen), WithGitSync(chezmoi.GitSyncSynced, 0, 0))
+
+	updated, cmd := sendKey(t, m, runeKey("f"))
+	if cmd == nil || !updated.status.fetchInProgress {
+		t.Fatal("expected f on the landing page to start a fetch")
+	}
+	if !updated.status.fetchManual {
+		t.Fatal("expected a key-initiated fetch to be manual")
+	}
+	if updated.view != LandingScreen {
+		t.Fatalf("expected to stay on the landing page, got %v", updated.view)
+	}
+}
+
+func TestLandingFetchKeyNoUpstreamReports(t *testing.T) {
+	m := newTestModel(WithView(LandingScreen), WithGitSync(chezmoi.GitSyncNoUpstream, 0, 0))
+
+	updated, cmd := sendKey(t, m, runeKey("f"))
+	if cmd != nil || updated.status.fetchInProgress {
+		t.Fatal("expected no fetch without an upstream")
+	}
+	if updated.ui.message != "no upstream configured" {
+		t.Fatalf("message = %q", updated.ui.message)
+	}
+}
+
+func TestLandingHelpBarMentionsFetch(t *testing.T) {
+	if got := ansi.Strip(renderLandingHelpBar()); !strings.Contains(got, "f fetch") {
+		t.Fatalf("landing help bar %q should mention f fetch", got)
+	}
+}
+
+func TestLandingRendersMessageWithoutShiftingLayout(t *testing.T) {
+	m := newTestModel(WithView(LandingScreen), WithGitSync(chezmoi.GitSyncNoUpstream, 0, 0))
+	m.landing.statsReady = true
+	quiet := ansi.Strip(m.renderLandingScreen())
+
+	m.ui.message = "no upstream configured"
+	loud := ansi.Strip(m.renderLandingScreen())
+
+	if !strings.Contains(loud, "no upstream configured") {
+		t.Fatalf("landing page should show the message line:\n%s", loud)
+	}
+	if strings.Count(quiet, "\n") != strings.Count(loud, "\n") {
+		t.Fatal("message line must reuse the spacer row, not add a line")
+	}
+}

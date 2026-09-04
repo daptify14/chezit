@@ -26,5 +26,5 @@
                                2   Files         Browse and edit managed dotfiles
                                3   Info          View configuration, data, and diagnostics
                                4   Commands      Run common chezmoi operations
-
+                                                 no upstream configured
                                    ↑/↓ navigate  1-4 jump  enter open  f fetch  q quit

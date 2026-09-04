@@ -43,7 +43,7 @@ func (m Model) renderLandingScreen() string {
 		m.renderSummaryBox(),
 		"", // spacer
 		m.renderLandingList(),
-		"", // spacer
+		m.renderLandingMessage(), // spacer, or the message line when set
 		renderLandingHelpBar(),
 	)
 
@@ -54,6 +54,15 @@ func (m Model) renderLandingScreen() string {
 			activeTheme.CenteredBox.Render(content))
 	}
 	return content
+}
+
+// renderLandingMessage fills the spacer above the help bar with the message
+// line when one is set, so feedback for f appears without shifting the layout.
+func (m Model) renderLandingMessage() string {
+	if m.ui.message == "" {
+		return ""
+	}
+	return activeTheme.HintText.Render(m.ui.message)
 }
 
 // renderChezitLogo renders the logo with ch-EZ-it coloring:
@@ -357,6 +366,9 @@ func (m Model) handleLandingKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		if itemCount > 3 {
 			return m.enterTabFromLanding(3)
 		}
+	case key.Matches(msg, ChezChangesKeys.Fetch):
+		next, cmd := m.startFetch(true)
+		return next, cmd
 	case key.Matches(msg, ChezSharedKeys.Quit):
 		return m, tea.Quit
 	}
@@ -383,6 +395,7 @@ func renderLandingHelpBar() string {
 		{"↑/↓", "navigate"},
 		{"1-4", "jump"},
 		{"enter", "open"},
+		{"f", "fetch"},
 		{"q", "quit"},
 	}
 
