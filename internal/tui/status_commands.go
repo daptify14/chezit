@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"cmp"
 	"fmt"
 	"os"
 	"os/exec"
@@ -332,27 +333,36 @@ func (m Model) loadIgnoreFileContentCmd() tea.Cmd {
 	}
 }
 
-// resolveEditor returns the editor command string to use.
-// Resolution order: Options.Editor > $EDITOR env var > "vi".
-func (m Model) resolveEditor() string {
-	if m.opts.Editor != "" {
-		return m.opts.Editor
+// resolveEditor returns the editor argv without the file.
+// Resolution order: Options.Editor > chezmoi edit.command > $VISUAL > $EDITOR > "vi".
+// Like chezmoi, edit.args follow unless Options.Editor stands in for a set edit.command.
+func (m Model) resolveEditor() []string {
+	edit := m.opts.EditConfig
+	switch {
+	case edit.Command != "" && m.opts.Editor != "":
+		return splitEditor(m.opts.Editor)
+	case edit.Command != "":
+		return append([]string{edit.Command}, edit.Args...)
 	}
-	if editor := os.Getenv("EDITOR"); editor != "" {
-		return editor
-	}
-	return "vi"
+	editor := cmp.Or(m.opts.Editor, os.Getenv("VISUAL"), os.Getenv("EDITOR"), "vi")
+	return append(splitEditor(editor), edit.Args...)
 }
 
-// editorCmd builds an exec.Cmd for the resolved editor with the given file path.
-// The editor string is split on whitespace to support arguments (e.g., "code --wait").
-func (m Model) editorCmd(filePath string) *exec.Cmd {
-	editor := m.resolveEditor()
-	parts := strings.Fields(editor)
-	if len(parts) == 0 {
-		parts = []string{"vi"}
+// splitEditor mirrors chezmoi: a string that resolves to an executable is one
+// word, otherwise it is split on whitespace so arguments like "code --wait" work.
+func splitEditor(editor string) []string {
+	if _, err := exec.LookPath(editor); err == nil {
+		return []string{editor}
 	}
-	return exec.Command(parts[0], append(parts[1:], filePath)...)
+	if parts := strings.Fields(editor); len(parts) > 0 {
+		return parts
+	}
+	return []string{"vi"}
+}
+
+func (m Model) editorCmd(filePath string) *exec.Cmd {
+	argv := append(m.resolveEditor(), filePath)
+	return exec.Command(argv[0], argv[1:]...)
 }
 
 // editTargetCmd opens a target-path file in the configured editor.

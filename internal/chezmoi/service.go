@@ -56,6 +56,7 @@ func (s *Service) CatConfig() (string, error)            { return s.client.CatCo
 func (s *Service) DumpConfig() (string, error)           { return s.client.DumpConfig() }
 func (s *Service) DumpConfigJSON() (string, error)       { return s.client.DumpConfigJSON() }
 func (s *Service) DiffConfig() (DiffConfig, error)       { return s.client.DiffConfig() }
+func (s *Service) EditConfig() (EditConfig, error)       { return s.client.EditConfig() }
 func (s *Service) Data() (string, error)                 { return s.client.Data() }
 func (s *Service) DataJSON() (string, error)             { return s.client.DataJSON() }
 func (s *Service) Doctor() (string, error)               { return s.client.Doctor() }

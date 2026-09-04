@@ -98,10 +98,16 @@ func runTUI(initialTab string) error {
 		}
 	}
 
+	var editCfg chezmoi.EditConfig
+	if ec, err := svc.EditConfig(); err == nil {
+		editCfg = ec
+	}
+
 	opts := tui.Options{
 		Service:       svc,
 		EscBehavior:   tui.EscQuit,
 		CommitPresets: cfg.CommitPresets,
+		EditConfig:    editCfg,
 		PanelMode:     cfg.Panel,
 		AutoFetch:     cfg.AutoFetchEnabled(),
 		IconMode:      iconMode,

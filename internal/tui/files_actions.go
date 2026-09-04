@@ -52,7 +52,7 @@ func (m *Model) openFilesIgnoredMenu() {
 	} else {
 		m.actions.managedItems = append(m.actions.managedItems,
 			chezmoiActionItem{label: "View .chezmoiignore", action: chezmoiActionViewIgnoreFile},
-			chezmoiActionItem{label: "Edit .chezmoiignore ($EDITOR)", action: chezmoiActionEditIgnoreFile},
+			chezmoiActionItem{label: "Edit .chezmoiignore", action: chezmoiActionEditIgnoreFile},
 			chezmoiActionItem{label: "──────────", action: chezmoiActionNone},
 		)
 		m.actions.managedItems = appendActionItemWithCapability(m.actions.managedItems, "Open in File Manager", chezmoiActionOpenFileManager, fmCap)
@@ -97,7 +97,7 @@ func (m *Model) openFilesActionsMenu() {
 		)
 		m.actions.managedItems = appendActionItem(
 			m.actions.managedItems,
-			"Edit Source ($EDITOR)",
+			"Edit Source",
 			chezmoiActionEditSource,
 			"", !readOnly,
 			"read-only mode",
@@ -293,7 +293,7 @@ func (m *Model) openFilesUnmanagedMenu() {
 		)
 		m.actions.managedItems = append(m.actions.managedItems, chezmoiActionItem{label: "──────────", action: chezmoiActionNone})
 		m.actions.managedItems = appendActionItem(
-			m.actions.managedItems, "Open in Editor ($EDITOR)", chezmoiActionEditTarget,
+			m.actions.managedItems, "Open in Editor", chezmoiActionEditTarget,
 			"Open file in your configured editor",
 			true, "",
 		)
