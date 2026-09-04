@@ -1,8 +1,10 @@
 package tui
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/x/ansi"
 )
@@ -53,4 +55,17 @@ func shortenPath(path, targetPath string) string {
 		return "~/" + path[len(targetPath)+1:]
 	}
 	return path
+}
+
+// humanAge renders a duration as a coarse age ("just now", "3m ago", "2h ago"),
+// rounded down.
+func humanAge(d time.Duration) string {
+	switch {
+	case d < time.Minute:
+		return "just now"
+	case d < time.Hour:
+		return fmt.Sprintf("%dm ago", int(d.Minutes()))
+	default:
+		return fmt.Sprintf("%dh ago", int(d.Hours()))
+	}
 }

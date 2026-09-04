@@ -1,6 +1,9 @@
 package tui
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestShortenPathWithTargetPath(t *testing.T) {
 	tests := []struct {
@@ -42,5 +45,25 @@ func TestShortenPathWithTargetPath(t *testing.T) {
 				t.Fatalf("shortenPath(%q, %q) = %q, want %q", tt.path, tt.targetPath, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestHumanAge(t *testing.T) {
+	cases := []struct {
+		d    time.Duration
+		want string
+	}{
+		{0, "just now"},
+		{-5 * time.Second, "just now"},
+		{59 * time.Second, "just now"},
+		{60 * time.Second, "1m ago"},
+		{59*time.Minute + 59*time.Second, "59m ago"},
+		{time.Hour, "1h ago"},
+		{25*time.Hour + 30*time.Minute, "25h ago"},
+	}
+	for _, tc := range cases {
+		if got := humanAge(tc.d); got != tc.want {
+			t.Errorf("humanAge(%s) = %q, want %q", tc.d, got, tc.want)
+		}
 	}
 }

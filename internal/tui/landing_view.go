@@ -9,6 +9,8 @@ import (
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+
+	"github.com/daptify14/chezit/internal/chezmoi"
 )
 
 // Logo art: unicode block letters spelling CHEZIT.
@@ -91,8 +93,27 @@ func renderLandingTagline() string {
 	return landingPadStyle.Foreground(activeTheme.SubtleText).Render(chezitTagline)
 }
 
-// isAllInSync returns true when there are no pending changes across chezmoi and git.
+// isAllInSync requires nothing pending and a trustworthy comparison: a
+// successful fetch this session, auto_fetch off, or no upstream to compare.
 func (m Model) isAllInSync() bool {
+	if !m.hasNothingPending() {
+		return false
+	}
+	switch m.status.gitInfo.Sync {
+	case chezmoi.GitSyncSynced:
+		if m.status.fetchInProgress || m.status.gitReadPending {
+			return false
+		}
+		return m.status.fetchOutcome == fetchOK || m.status.fetchOutcome == fetchOff
+	case chezmoi.GitSyncNoUpstream:
+		return true // nothing to compare against
+	default:
+		return false
+	}
+}
+
+// hasNothingPending reports no drift, staged/unstaged files, or ahead/behind commits.
+func (m Model) hasNothingPending() bool {
 	return len(m.status.filteredFiles) == 0 &&
 		len(m.status.gitStagedFiles) == 0 &&
 		len(m.status.gitUnstagedFiles) == 0 &&
@@ -100,54 +121,52 @@ func (m Model) isAllInSync() bool {
 		m.status.gitInfo.Behind == 0
 }
 
+// Summary box column layout. The right column must fit "not fetched · f".
+const (
+	statsLeftWidth  = 14
+	statsRightWidth = 16
+	statsGap        = "    "
+	statsRowWidth   = statsLeftWidth + len(statsGap) + statsRightWidth
+)
+
 // renderSummaryBox renders a bordered box with git and chezmoi summary data.
-// All three states (loading, in-sync, has-changes) output exactly 3 rows
-// to prevent layout shifts during async data loading.
+// All states output exactly 4 rows to prevent layout shifts during async
+// loading; row 4 is always the upstream freshness row.
 func (m Model) renderSummaryBox() string {
 	t := &activeTheme
 	isLoading := !m.landing.statsReady
-
-	// Match the total content width from formatStatsRow so spinner and
-	// centered text align with the column-based rows.
-	const totalRowWidth = 14 + 4 + 12 // leftWidth + len(gap) + rightWidth
 
 	var rows []string
 	var borderColor color.Color
 
 	switch {
 	case isLoading:
-		// Spinner + label on row 1, two empty rows to hold height
+		// Spinner + label on row 1, three empty rows to hold height
 		loadingMsg := m.ui.loadingSpinner.View() + " " +
 			t.HintText.Render("checking…")
 		rows = append(rows,
-			lipgloss.NewStyle().Width(totalRowWidth).Render(loadingMsg),
+			lipgloss.NewStyle().Width(statsRowWidth).Render(loadingMsg),
+			"",
 			"",
 			"",
 		)
 		borderColor = t.Dim
 	case m.isAllInSync():
 		// Row 1: branch + managed count
-		branch := m.status.gitInfo.Branch
-		if branch == "" {
-			branch = "—"
-		}
 		managed := formatCountWithLabel(t, len(m.filesTab.views[managedViewManaged].files), "managed")
 		rows = append(rows,
-			formatStatsRow(t.Normal.Render(branch), managed),
+			formatStatsRow(t.Normal.Render(m.landingBranch()), managed),
 			"", // spacer
-			lipgloss.NewStyle().Width(totalRowWidth).Align(lipgloss.Center).Render(
+			lipgloss.NewStyle().Width(statsRowWidth).Align(lipgloss.Center).Render(
 				t.SuccessFg.Render("all in sync"),
 			),
+			m.renderUpstreamRow(t),
 		)
 		borderColor = t.Success
 	default:
-		// Full 3-row stats view
-		branch := m.status.gitInfo.Branch
-		if branch == "" {
-			branch = "—"
-		}
+		// Full stats view
 		aheadBehind := formatAheadBehind(t, m.status.gitInfo.Ahead, m.status.gitInfo.Behind)
-		rows = append(rows, formatStatsRow(t.Normal.Render(branch), aheadBehind))
+		rows = append(rows, formatStatsRow(t.Normal.Render(m.landingBranch()), aheadBehind))
 
 		left2 := formatCountWithLabel(t, len(m.status.filteredFiles), "changed")
 		right2 := formatCountWithLabel(t, len(m.status.gitStagedFiles), "staged")
@@ -155,8 +174,14 @@ func (m Model) renderSummaryBox() string {
 
 		left3 := formatCountWithLabel(t, len(m.filesTab.views[managedViewManaged].files), "managed")
 		right3 := formatCountWithLabel(t, len(m.status.gitUnstagedFiles), "unstaged")
-		rows = append(rows, formatStatsRow(left3, right3))
-		borderColor = t.Warning
+		rows = append(rows, formatStatsRow(left3, right3), m.renderUpstreamRow(t))
+
+		// Warn only for real pending work; a failed or pending fetch alone
+		// stays neutral so a flaky network does not paint the box orange.
+		borderColor = t.Dim
+		if !m.hasNothingPending() {
+			borderColor = t.Warning
+		}
 	}
 
 	content := strings.Join(rows, "\n")
@@ -169,18 +194,37 @@ func (m Model) renderSummaryBox() string {
 		Render(content)
 }
 
+// landingBranch returns the branch name or a placeholder when unknown.
+func (m Model) landingBranch() string {
+	if m.status.gitInfo.Branch == "" {
+		return "—"
+	}
+	return m.status.gitInfo.Branch
+}
+
+// renderUpstreamRow renders the summary box's fourth row.
+func (m Model) renderUpstreamRow(t *Theme) string {
+	return formatStatsRow(t.Normal.Render("upstream"), m.formatUpstreamFreshness(t))
+}
+
+// formatUpstreamFreshness renders the right column of the upstream row.
+func (m Model) formatUpstreamFreshness(t *Theme) string {
+	switch {
+	case m.status.gitInfo.Sync == chezmoi.GitSyncNoUpstream:
+		return t.HintText.Render("none")
+	case m.status.fetchInProgress:
+		return m.ui.loadingSpinner.View() + " " + t.HintText.Render("checking…")
+	}
+	return m.upstreamOutcomeToken(t, false)
+}
+
 // formatStatsRow creates a properly aligned row with left and right columns.
 func formatStatsRow(left, right string) string {
-	const (
-		leftWidth  = 14
-		rightWidth = 12
-		gap        = "    "
-	)
 	// Pad left column to fixed width
-	leftPadded := lipgloss.NewStyle().Width(leftWidth).Align(lipgloss.Left).Render(left)
+	leftPadded := lipgloss.NewStyle().Width(statsLeftWidth).Align(lipgloss.Left).Render(left)
 	// Pad right column to fixed width
-	rightPadded := lipgloss.NewStyle().Width(rightWidth).Align(lipgloss.Left).Render(right)
-	return leftPadded + gap + rightPadded
+	rightPadded := lipgloss.NewStyle().Width(statsRightWidth).Align(lipgloss.Left).Render(right)
+	return leftPadded + statsGap + rightPadded
 }
 
 // formatAheadBehind renders ahead/behind indicators.

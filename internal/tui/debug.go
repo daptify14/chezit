@@ -49,13 +49,16 @@ func formatMsgDetail(msg tea.Msg) string {
 	case chezmoiStatusLoadedMsg:
 		return genErr(msg.gen, msg.err, fmt.Sprintf("files=%d", len(msg.files)))
 	case chezmoiGitStatusLoadedMsg:
-		return genErr(msg.gen, msg.err, fmt.Sprintf("staged=%d unstaged=%d", len(msg.staged), len(msg.unstaged)))
+		return genErr(msg.gen, msg.err, fmt.Sprintf("seq=%d staged=%d unstaged=%d sync=%s upstream=%s",
+			msg.seq, len(msg.staged), len(msg.unstaged), msg.info.Sync, msg.info.Upstream))
 	case chezmoiGitActionDoneMsg:
 		return actionErr(msg.action, msg.err, msg.message)
 	case chezmoiGitCommitsLoadedMsg:
-		return genErr(msg.gen, msg.err, fmt.Sprintf("unpushed=%d incoming=%d", len(msg.unpushed), len(msg.incoming)))
+		return genErr(msg.gen, msg.err, fmt.Sprintf("seq=%d unpushed=%d incoming=%d", msg.seq, len(msg.unpushed), len(msg.incoming)))
 	case chezmoiGitFetchDoneMsg:
 		return genErr(msg.gen, msg.err, "")
+	case fetchAgeTickMsg:
+		return ""
 	case templatePathsLoadedMsg:
 		return genErr(msg.gen, nil, fmt.Sprintf("paths=%d", len(msg.paths)))
 

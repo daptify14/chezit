@@ -1,0 +1,30 @@
+
+
+
+
+
+
+
+
+
+
+                                         ██████ ██   ██ ███████ ██████ ██ ████████
+                                        ██      ██   ██ ██         ███ ██    ██
+                                        ██      ███████ █████     ███  ██    ██
+                                        ██      ██   ██ ██       ███   ██    ██
+                                         ██████ ██   ██ ███████ ██████ ██    ██
+                                                   chezmoi TUI manager
+
+                                      ╭──────────────────────────────────────────╮
+                                      │    main              ↑0 ↓0               │
+                                      │    0 changed         0 staged            │
+                                      │    0 managed         0 unstaged          │
+                                      │    upstream          unreachable         │
+                                      ╰──────────────────────────────────────────╯
+
+                               1 > Status        View changes and manage git staging
+                               2   Files         Browse and edit managed dotfiles
+                               3   Info          View configuration, data, and diagnostics
+                               4   Commands      Run common chezmoi operations
+
+                                       ↑/↓ navigate  1-4 jump  enter open  q quit

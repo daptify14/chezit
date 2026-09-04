@@ -218,3 +218,72 @@ func TestEscFromLandingQuits(t *testing.T) {
 		t.Fatalf("expected tea.QuitMsg, got %T", quitMsg)
 	}
 }
+
+func TestNewModelAutoFetchPresetsInFlight(t *testing.T) {
+	m := NewModel(Options{Service: testService(), AutoFetch: true})
+	if !m.autoFetch {
+		t.Fatal("expected autoFetch to be recorded on the model")
+	}
+	if !m.status.fetchInProgress {
+		t.Fatal("expected fetch to be preset in flight when Init will dispatch it")
+	}
+	if m.status.fetchOutcome != fetchNotStarted {
+		t.Fatalf("expected outcome fetchNotStarted, got %d", m.status.fetchOutcome)
+	}
+}
+
+func TestNewModelAutoFetchOffSetsOutcome(t *testing.T) {
+	m := NewModel(Options{Service: testService(), AutoFetch: false})
+	if m.status.fetchOutcome != fetchOff {
+		t.Fatalf("expected outcome fetchOff, got %d", m.status.fetchOutcome)
+	}
+	if m.status.fetchInProgress {
+		t.Fatal("expected no fetch in flight when auto_fetch is off")
+	}
+}
+
+func TestInitIncludesFetchOnlyWhenAutoFetch(t *testing.T) {
+	on := NewModel(Options{Service: testService(), AutoFetch: true})
+	if !containsMsgType(collectInitAndBatchMsgs(t, on.Init()), chezmoiGitFetchDoneMsg{}) {
+		t.Fatal("expected Init batch to include the fetch when auto_fetch is on")
+	}
+
+	off := NewModel(Options{Service: testService(), AutoFetch: false})
+	if containsMsgType(collectInitAndBatchMsgs(t, off.Init()), chezmoiGitFetchDoneMsg{}) {
+		t.Fatal("expected Init batch to omit the fetch when auto_fetch is off")
+	}
+}
+
+func TestNewModelFilesTabDefersFetch(t *testing.T) {
+	m := NewModel(Options{Service: testService(), InitialTab: "Files", AutoFetch: true})
+	if m.status.fetchInProgress {
+		t.Fatal("expected no fetch in flight when git is deferred")
+	}
+	if containsMsgType(collectInitAndBatchMsgs(t, m.Init()), chezmoiGitFetchDoneMsg{}) {
+		t.Fatal("expected Init batch to omit the fetch when git is deferred")
+	}
+
+	cmd := m.loadDeferredForTab("Status")
+	if !m.status.fetchInProgress {
+		t.Fatal("expected deferred Status load to start the fetch")
+	}
+	if !containsMsgType(collectInitAndBatchMsgs(t, cmd), chezmoiGitFetchDoneMsg{}) {
+		t.Fatal("expected deferred Status load batch to include the fetch")
+	}
+
+	// A second deferred load must not dispatch another fetch.
+	if cmd := m.loadDeferredForTab("Status"); cmd != nil {
+		t.Fatal("expected no further loads once deferred flags are cleared")
+	}
+}
+
+func TestLoadDeferredSkipsFetchWhenAutoFetchOff(t *testing.T) {
+	m := NewModel(Options{Service: testService(), InitialTab: "Files", AutoFetch: false})
+	cmd := m.loadDeferredForTab("Status")
+	if m.status.fetchInProgress {
+		t.Fatal("expected no fetch when auto_fetch is off")
+	}
+	if containsMsgType(collectInitAndBatchMsgs(t, cmd), chezmoiGitFetchDoneMsg{}) {
+		t.Fatal("expected deferred Status load batch to omit the fetch when auto_fetch is off")
+	}
+}

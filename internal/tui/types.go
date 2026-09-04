@@ -125,8 +125,25 @@ type statusTab struct {
 	incomingCommits []chezmoi.GitCommit
 	lastFetchTime   time.Time
 	fetchInProgress bool
+	fetchOutcome    fetchOutcome
+	fetchReason     string          // short label for a failed fetch: unreachable, auth failed, timed out, fetch failed
+	fetchManual     bool            // the in-flight fetch was user-initiated and may write the message line
+	fetchAgeTicking bool            // a minute tick is armed to refresh the "fetched Nm ago" label
+	gitReadSeq      uint64          // bumped when a fetch schedules replacement git reads; older results are dropped
+	gitReadPending  bool            // post-fetch git status has not landed yet, so the stored comparison is stale
 	templatePaths   map[string]bool // target paths of template-managed files
 }
+
+// fetchOutcome records the most recent upstream fetch this session.
+// Zero value = fetchNotStarted so a fresh model never claims freshness.
+type fetchOutcome int
+
+const (
+	fetchNotStarted fetchOutcome = iota
+	fetchOK
+	fetchFailed
+	fetchOff // auto_fetch: false and no manual fetch yet
+)
 
 // managedViewMode selects which data the Managed tab displays.
 type managedViewMode int

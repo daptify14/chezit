@@ -15,11 +15,12 @@
                                          ██████ ██   ██ ███████ ██████ ██    ██
                                                    chezmoi TUI manager
 
-                                        ╭──────────────────────────────────────╮
-                                        │    —                 0 managed       │
-                                        │                                      │
-                                        │             all in sync              │
-                                        ╰──────────────────────────────────────╯
+                                      ╭──────────────────────────────────────────╮
+                                      │    main              ↑1 ↓2               │
+                                      │    1 changed         0 staged            │
+                                      │    0 managed         0 unstaged          │
+                                      │    upstream          fetched 2m ago      │
+                                      ╰──────────────────────────────────────────╯
 
                                1 > Status        View changes and manage git staging
                                2   Files         Browse and edit managed dotfiles

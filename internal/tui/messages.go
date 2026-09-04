@@ -89,6 +89,7 @@ type chezmoiGitStatusLoadedMsg struct {
 	info     chezmoi.GitInfo
 	err      error
 	gen      uint64
+	seq      uint64 // statusTab.gitReadSeq at dispatch
 }
 
 type chezmoiGitActionDoneMsg struct {
@@ -144,12 +145,16 @@ type chezmoiGitCommitsLoadedMsg struct {
 	incoming []chezmoi.GitCommit
 	err      error
 	gen      uint64
+	seq      uint64 // statusTab.gitReadSeq at dispatch
 }
 
 type chezmoiGitFetchDoneMsg struct {
 	err error
 	gen uint64
 }
+
+// fetchAgeTickMsg re-renders once a minute so "fetched Nm ago" stays current.
+type fetchAgeTickMsg struct{}
 
 type templatePathsLoadedMsg struct {
 	paths map[string]bool

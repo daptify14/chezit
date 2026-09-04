@@ -54,6 +54,8 @@ type Model struct {
 
 	diffPagerCmd string // chezmoi diff.pager value; empty = use built-in styling
 
+	autoFetch bool // start a background git fetch when git info first loads
+
 	width  int
 	height int
 
@@ -196,6 +198,13 @@ func NewModel(opts Options) Model {
 	if !managedDeferred {
 		model.filesTab.views[managedViewManaged].loading = true
 	}
+	model.autoFetch = opts.AutoFetch
+	if !opts.AutoFetch {
+		model.status.fetchOutcome = fetchOff
+	}
+	// Preset in-flight when Init will dispatch the fetch so the first frame
+	// already says "checking…" (same trick as the info views below).
+	model.status.fetchInProgress = opts.AutoFetch && !gitDeferred
 	if strings.EqualFold(opts.InitialTab, "info") {
 		for i := range infoViewCount {
 			model.info.views[i].loading = true
@@ -230,6 +239,9 @@ func (m Model) Init() tea.Cmd {
 	default:
 		// Default/Status: load status + git + managed (for landing summary)
 		cmds = append(cmds, m.loadStatusCmd(), m.loadManagedCmd(), m.loadTemplatePathsCmd(), m.loadGitStatusCmd(), m.loadGitCommitsCmd())
+		if m.autoFetch {
+			cmds = append(cmds, m.gitFetchCmd())
+		}
 	}
 
 	return tea.Batch(cmds...)
@@ -250,6 +262,10 @@ func (m *Model) loadDeferredForTab(tabName string) tea.Cmd {
 			m.status.gitDeferred = false
 			m.status.loadingGit = true
 			cmds = append(cmds, m.loadGitStatusCmd(), m.loadGitCommitsCmd())
+			if m.autoFetch && m.status.fetchOutcome == fetchNotStarted && !m.status.fetchInProgress {
+				m.status.fetchInProgress = true
+				cmds = append(cmds, m.gitFetchCmd())
+			}
 		}
 		if m.filesTab.managedDeferred {
 			m.filesTab.managedDeferred = false

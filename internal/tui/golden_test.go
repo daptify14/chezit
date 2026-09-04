@@ -70,6 +70,28 @@ func TestGoldenStatusTab(t *testing.T) {
 		output := stripForGolden(m.renderChangesTabContent())
 		golden.RequireEqual(t, []byte(output))
 	})
+
+	t.Run("header_behind_fetched", func(t *testing.T) {
+		m := newTestModel(
+			WithGitSync(chezmoi.GitSyncBehind, 0, 2),
+			WithFetchState(fetchOK, "", false),
+			WithDriftFiles(nil),
+		)
+		m.status.loadingGit = false
+		output := stripForGolden(m.renderChangesTabContent())
+		golden.RequireEqual(t, []byte(output))
+	})
+
+	t.Run("header_unreachable", func(t *testing.T) {
+		m := newTestModel(
+			WithGitSync(chezmoi.GitSyncSynced, 0, 0),
+			WithFetchState(fetchFailed, "unreachable", false),
+			WithDriftFiles(nil),
+		)
+		m.status.loadingGit = false
+		output := stripForGolden(m.renderChangesTabContent())
+		golden.RequireEqual(t, []byte(output))
+	})
 }
 
 // ── Files Tab ───────────────────────────────────────────────────────
@@ -157,13 +179,29 @@ func TestGoldenDiffView(t *testing.T) {
 // ── Landing View ────────────────────────────────────────────────────
 
 func TestGoldenLandingScreen(t *testing.T) {
-	t.Run("stats_ready", func(t *testing.T) {
-		m := newTestModel(WithView(LandingScreen))
-		m.view = LandingScreen
-		m.landing.statsReady = true
-		output := stripForGolden(m.renderLandingScreen())
-		golden.RequireEqual(t, []byte(output))
-	})
+	cases := []struct {
+		name string
+		opts []TestModelOption
+	}{
+		{"in_sync_fetched", []TestModelOption{WithGitSync(chezmoi.GitSyncSynced, 0, 0), WithFetchState(fetchOK, "", false)}},
+		{"checking", []TestModelOption{WithGitSync(chezmoi.GitSyncSynced, 0, 0), WithFetchState(fetchNotStarted, "", true)}},
+		{"unreachable", []TestModelOption{WithGitSync(chezmoi.GitSyncSynced, 0, 0), WithFetchState(fetchFailed, "unreachable", false)}},
+		{"no_upstream", []TestModelOption{WithGitSync(chezmoi.GitSyncNoUpstream, 0, 0)}},
+		{"auto_fetch_off", []TestModelOption{WithGitSync(chezmoi.GitSyncSynced, 0, 0), WithFetchState(fetchOff, "", false)}},
+		{"changes_pending", []TestModelOption{
+			WithGitSync(chezmoi.GitSyncDiverged, 1, 2),
+			WithFetchState(fetchOK, "", false),
+			WithDriftFiles([]chezmoi.FileStatus{{Path: "/home/test/.bashrc", SourceStatus: 'M', DestStatus: ' '}}),
+		}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			m := newTestModel(append([]TestModelOption{WithView(LandingScreen)}, tc.opts...)...)
+			m.landing.statsReady = true
+			output := stripForGolden(m.renderLandingScreen())
+			golden.RequireEqual(t, []byte(output))
+		})
+	}
 }
 
 // ── Panel ───────────────────────────────────────────────────────────

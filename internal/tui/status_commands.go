@@ -118,20 +118,21 @@ func (m Model) pushCmd() tea.Cmd {
 }
 
 func (m Model) loadGitCommitsCmd() tea.Cmd {
-	gen := m.gen
+	gen, seq := m.gen, m.status.gitReadSeq
 	return func() tea.Msg {
 		unpushedRaw, err := m.service.GitLogUnpushed()
 		if err != nil {
-			return chezmoiGitCommitsLoadedMsg{err: err, gen: gen}
+			return chezmoiGitCommitsLoadedMsg{err: err, gen: gen, seq: seq}
 		}
 		incomingRaw, err := m.service.GitLogIncoming()
 		if err != nil {
-			return chezmoiGitCommitsLoadedMsg{err: err, gen: gen}
+			return chezmoiGitCommitsLoadedMsg{err: err, gen: gen, seq: seq}
 		}
 		return chezmoiGitCommitsLoadedMsg{
 			unpushed: chezmoi.ParseGitLogOneline(unpushedRaw),
 			incoming: chezmoi.ParseGitLogOneline(incomingRaw),
 			gen:      gen,
+			seq:      seq,
 		}
 	}
 }
@@ -157,14 +158,14 @@ func (m Model) gitPullCmd() tea.Cmd {
 }
 
 func (m Model) loadGitStatusCmd() tea.Cmd {
-	gen := m.gen
+	gen, seq := m.gen, m.status.gitReadSeq
 	return func() tea.Msg {
 		staged, unstaged, err := m.service.GitStatus()
 		if err != nil {
-			return chezmoiGitStatusLoadedMsg{err: err, gen: gen}
+			return chezmoiGitStatusLoadedMsg{err: err, gen: gen, seq: seq}
 		}
 		info, _ := m.service.GitBranchInfo()
-		return chezmoiGitStatusLoadedMsg{staged: staged, unstaged: unstaged, info: info, gen: gen}
+		return chezmoiGitStatusLoadedMsg{staged: staged, unstaged: unstaged, info: info, gen: gen, seq: seq}
 	}
 }
 
