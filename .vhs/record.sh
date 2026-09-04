@@ -43,6 +43,14 @@ git config user.name "Demo User"
 git add -A
 git commit -q -m "initial dotfiles"
 
+# --- Upstream remote so fetch state and ahead/behind have something to show ---
+git init -q --bare "$TMPHOME/origin.git"
+git remote add origin "$TMPHOME/origin.git"
+git push -q -u origin HEAD
+echo "*.log" >> .chezmoiignore
+git add .chezmoiignore
+git commit -q -m "ignore log files"
+
 # --- Create local drift (target differs from source — shows as drift) ---
 # 1. zshrc: append a TODO comment
 echo "" >> "$HOME/.zshrc"

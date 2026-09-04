@@ -206,7 +206,7 @@ If you want to keep a pager configured for regular `chezmoi` CLI use but bypass 
 
 ## Development
 
-Requires Go 1.26+ and [task](https://taskfile.dev/). Uses Bubble Tea v2, Lip Gloss v2, and Bubbles v2. Huh v2 is still pre-release.
+Requires Go 1.27+ and [task](https://taskfile.dev/). Uses Bubble Tea v2, Lip Gloss v2, Bubbles v2, and Huh v2.
 
 ```bash
 task setup          # install dev tools and git hooks
@@ -215,6 +215,7 @@ task check          # run all checks (fmt, lint, test)
 task test           # run tests (supports filters via --, e.g. task test -- -run TestGolden)
 task test-update    # regenerate golden snapshot files
 task test-update -- -run TestGoldenStatusTab|TestGoldenActionsMenu  # regenerate status-related golden snapshots
+task record         # re-record the README demo GIF and screenshots (needs vhs, chezmoi, a Nerd Font)
 ```
 
 Notes:

@@ -7,7 +7,7 @@ Require chezmoi
 Type "chezit"
 Sleep 1s
 Enter
-Sleep 2s
+Sleep 3s
 
 # Landing page — let viewer see the summary box, then enter Status
 Screenshot "docs/assets/landing.png"
@@ -15,20 +15,20 @@ Enter
 Sleep 2s
 
 # Status tab — panel open with diff view (default for Status)
-# Navigate through drift items (2 items: zshrc, ghostty)
+# Move onto the first Local Drift rows
 Type "j"
 Sleep 600ms
 Type "j"
 Sleep 600ms
 Sleep 1s
 
-# Screenshot captures drift + unstaged + staged sections visible
+# Screenshot captures the sync header, Local Drift, and Unstaged sections
 Screenshot "docs/assets/status.png"
 Sleep 200ms
 Type "v"
 Sleep 1.5s
 
-# Navigate through unstaged section (3 items: ripgreprc, starship, ssh)
+# Walk down the drift rows with the content view
 Type "j"
 Sleep 500ms
 Type "j"
@@ -39,7 +39,7 @@ Type "j"
 Sleep 500ms
 Sleep 1s
 
-# Navigate through staged section (3 items: bashrc, brew.env, zprofile)
+# Continue to the end of Local Drift and into Unstaged
 Type "j"
 Sleep 500ms
 Type "j"
