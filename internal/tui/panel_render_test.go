@@ -87,8 +87,8 @@ func TestRenderPanelFileContentUsesStableLineNumberColumn(t *testing.T) {
 	}
 	long := renderPanelFileContent(longLines, 80, "test.txt")
 
-	shortLine := strings.Split(short, "\n")[0]
-	longLine := strings.Split(long, "\n")[0]
+	shortLine, _, _ := strings.Cut(short, "\n")
+	longLine, _, _ := strings.Cut(long, "\n")
 
 	shortIdx := strings.Index(shortLine, "alpha")
 	longIdx := strings.Index(longLine, "alpha")
