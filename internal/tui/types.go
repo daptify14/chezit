@@ -53,7 +53,6 @@ const (
 	chezmoiActionApplyManaged
 	chezmoiActionOpenFileManager
 	chezmoiActionEditTarget
-	chezmoiActionFetch
 	chezmoiActionPull
 
 	// Ignored view actions
