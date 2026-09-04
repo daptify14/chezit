@@ -107,6 +107,66 @@ func TestLoadFromDiffBuiltinDefaultsFalse(t *testing.T) {
 	}
 }
 
+func TestLoadFromAutoFetchDefaultsTrue(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	if err := os.WriteFile(path, []byte(`
+icons: none
+`), 0o600); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	cfg, err := LoadFrom(path)
+	if err != nil {
+		t.Fatalf("LoadFrom: %v", err)
+	}
+	if !cfg.AutoFetchEnabled() {
+		t.Fatal("expected auto_fetch to default to true when the key is absent")
+	}
+}
+
+func TestLoadFromParsesAutoFetchFalse(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	if err := os.WriteFile(path, []byte(`
+auto_fetch: false
+`), 0o600); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	cfg, err := LoadFrom(path)
+	if err != nil {
+		t.Fatalf("LoadFrom: %v", err)
+	}
+	if cfg.AutoFetchEnabled() {
+		t.Fatal("expected auto_fetch false, got true")
+	}
+}
+
+func TestLoadFromParsesAutoFetchTrue(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	if err := os.WriteFile(path, []byte(`
+auto_fetch: true
+`), 0o600); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	cfg, err := LoadFrom(path)
+	if err != nil {
+		t.Fatalf("LoadFrom: %v", err)
+	}
+	if !cfg.AutoFetchEnabled() {
+		t.Fatal("expected auto_fetch true, got false")
+	}
+}
+
+func TestDefaultAutoFetchTrue(t *testing.T) {
+	if !Default().AutoFetchEnabled() {
+		t.Fatal("expected Default().AutoFetchEnabled() to be true")
+	}
+	if (Config{}).AutoFetchEnabled() != true {
+		t.Fatal("expected zero-value Config to report auto_fetch enabled")
+	}
+}
+
 func TestNormalizeIconsTrimsAndLowercases(t *testing.T) {
 	cfg := Config{
 		Icons: "  NerdFont  ",

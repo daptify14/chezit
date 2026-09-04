@@ -103,6 +103,7 @@ func runTUI(initialTab string) error {
 		EscBehavior:   tui.EscQuit,
 		CommitPresets: cfg.CommitPresets,
 		PanelMode:     cfg.Panel,
+		AutoFetch:     cfg.AutoFetchEnabled(),
 		IconMode:      iconMode,
 		InitialTab:    initialTab,
 		DiffPagerCmd:  diffPagerCmd,
