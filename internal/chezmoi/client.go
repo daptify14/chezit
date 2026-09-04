@@ -505,8 +505,31 @@ func (c *Client) GitSoftReset() error {
 	return nil
 }
 
+// noUpstreamMarkers are git's documented no-upstream messages for
+// `rev-parse @{upstream}`; detached HEAD is caught by Branch == "HEAD" instead.
+var noUpstreamMarkers = []string{
+	"no upstream configured",
+	"does not point to a branch",
+	"unknown revision",
+	"no upstream branch",
+	"ambiguous argument '@{upstream}'",
+}
+
+// containsAnyFold reports whether s contains any (lowercase) marker, case-insensitively.
+func containsAnyFold(s string, markers []string) bool {
+	lower := strings.ToLower(s)
+	for _, marker := range markers {
+		if strings.Contains(lower, marker) {
+			return true
+		}
+	}
+	return false
+}
+
+// GitBranchInfo reports the branch, upstream, and sync state. Only a missing
+// branch name is an error; other failures degrade to Unknown or NoUpstream.
 func (c *Client) GitBranchInfo() (GitInfo, error) {
-	var info GitInfo
+	var info GitInfo // Sync zero value = GitSyncUnknown
 
 	out, err := c.run("git", "--", "rev-parse", "--abbrev-ref", "HEAD")
 	if err != nil {
@@ -514,19 +537,46 @@ func (c *Client) GitBranchInfo() (GitInfo, error) {
 	}
 	info.Branch = strings.TrimSpace(string(out))
 
-	out, _ = c.run("git", "--", "remote")
-	info.Remote = strings.TrimSpace(strings.Split(string(out), "\n")[0])
-
-	out, err = c.run("git", "--", "rev-list", "--left-right", "--count", "@{upstream}...HEAD")
-	if err == nil {
-		parts := strings.Fields(strings.TrimSpace(string(out)))
-		if len(parts) == 2 {
-			info.Behind, _ = strconv.Atoi(parts[0])
-			info.Ahead, _ = strconv.Atoi(parts[1])
-		}
+	if remoteOut, remoteErr := c.run("git", "--", "remote"); remoteErr == nil {
+		info.Remote, _, _ = strings.Cut(strings.TrimSpace(string(remoteOut)), "\n")
 	}
 
+	info.Upstream, info.Sync = c.gitUpstream(info.Branch)
+	if info.Upstream != "" {
+		info.Ahead, info.Behind, info.Sync = c.gitAheadBehind()
+	}
 	return info, nil
+}
+
+// gitUpstream resolves @{upstream}; the returned state is only meaningful when
+// upstream is empty (NoUpstream for git's documented messages, else Unknown).
+func (c *Client) gitUpstream(branch string) (upstream string, state GitSyncState) {
+	out, err := c.run("git", "--", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}")
+	if err == nil {
+		return strings.TrimSpace(string(out)), GitSyncUnknown
+	}
+	if branch == "HEAD" || containsAnyFold(string(out), noUpstreamMarkers) {
+		return "", GitSyncNoUpstream
+	}
+	return "", GitSyncUnknown
+}
+
+// gitAheadBehind counts commits either side of @{upstream}; any failure is Unknown.
+func (c *Client) gitAheadBehind() (ahead, behind int, state GitSyncState) {
+	out, err := c.run("git", "--", "rev-list", "--left-right", "--count", "@{upstream}...HEAD")
+	if err != nil {
+		return 0, 0, GitSyncUnknown
+	}
+	parts := strings.Fields(string(out))
+	if len(parts) != 2 {
+		return 0, 0, GitSyncUnknown
+	}
+	behind, errB := strconv.Atoi(parts[0])
+	ahead, errA := strconv.Atoi(parts[1])
+	if errA != nil || errB != nil {
+		return 0, 0, GitSyncUnknown
+	}
+	return ahead, behind, classifySync(ahead, behind)
 }
 
 func (c *Client) EditSourceCmd() *exec.Cmd {
