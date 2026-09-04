@@ -32,7 +32,6 @@ func TestActionRequiresWriteIncludesMutatingStatusActions(t *testing.T) {
 		chezmoiActionNone,
 		chezmoiActionViewDiff,
 		chezmoiActionRefresh,
-		chezmoiActionFetch,
 		chezmoiActionPull,
 	}
 	for _, action := range nonWriteActions {

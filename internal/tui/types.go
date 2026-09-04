@@ -53,7 +53,6 @@ const (
 	chezmoiActionApplyManaged
 	chezmoiActionOpenFileManager
 	chezmoiActionEditTarget
-	chezmoiActionFetch
 	chezmoiActionPull
 
 	// Ignored view actions
@@ -357,13 +356,12 @@ func (d *diffViewState) clear() {
 	d.resetViewport()
 }
 
-// filesSearchMetrics captures per-run deep-search telemetry for debugging/tests.
-// This is state-only telemetry (not rendered in UI in this rollout).
+// filesSearchMetrics captures per-run deep-search telemetry.
 type filesSearchMetrics struct {
 	elapsed    time.Duration
 	roots      int
 	matches    int
-	terminated string // complete | max-results | canceled | deadline | error
+	terminated string // complete | max-results | canceled | deadline
 }
 
 // filesSearchData groups fields for the files-tab deep search (unmanaged/all views).

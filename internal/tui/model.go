@@ -309,7 +309,7 @@ func (m Model) isAnyLoading() bool {
 func (m Model) allLandingStatsLoaded() bool {
 	statusReady := !m.ui.loading && !m.status.statusDeferred
 	managedReady := !m.filesTab.views[managedViewManaged].loading && !m.filesTab.managedDeferred
-	gitReady := !m.status.loadingGit && (!m.status.gitDeferred || m.service.IsReadOnly())
+	gitReady := !m.status.loadingGit && !m.status.gitDeferred
 	return statusReady && managedReady && gitReady
 }
 
@@ -361,7 +361,8 @@ func (m Model) escCmd() (Model, tea.Cmd) {
 		return m, sendExitMsg()
 	}
 	m.view = LandingScreen
-	return m, nil
+	cmd := m.loadDeferredForTab("Status")
+	return m, cmd
 }
 
 // sendExitMsg returns a command that sends ExitMsg.

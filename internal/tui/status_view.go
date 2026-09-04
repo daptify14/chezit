@@ -269,29 +269,29 @@ func (m Model) renderChangesStatusBar() string {
 	default:
 		panelHint := m.listPreviewHint()
 		if m.status.selectionActive {
-			help = m.helpHint("S-↑/S-↓ range | s stage | u unstage | x discard | a actions | ↑/↓ clear range" + panelHint + " | esc quit")
+			help = m.helpHint("S-↑/S-↓ range | s stage | u unstage | x discard | a actions | ↑/↓ clear range" + panelHint + " | esc back")
 			return statusBar + "\n" + help
 		}
 		row := m.currentChangesRow()
 		switch {
 		case row.isHeader:
-			help = m.helpHint("↑/↓ nav | enter toggle | c commit | P push | r refresh | / filter" + panelHint + " | esc quit")
+			help = m.helpHint("↑/↓ nav | enter toggle | c commit | P push | r refresh | / filter" + panelHint + " | esc back")
 		case row.section == changesSectionDrift:
 			if row.driftFile != nil && m.canReAddDriftFile(*row.driftFile) {
-				help = m.helpHint("↑/↓ nav | enter diff | s re-add | a actions | c commit | r refresh" + panelHint + " | esc quit")
+				help = m.helpHint("↑/↓ nav | enter diff | s re-add | a actions | c commit | r refresh" + panelHint + " | esc back")
 			} else {
-				help = m.helpHint("↑/↓ nav | enter diff | a actions | c commit | r refresh" + panelHint + " | esc quit")
+				help = m.helpHint("↑/↓ nav | enter diff | a actions | c commit | r refresh" + panelHint + " | esc back")
 			}
 		case row.section == changesSectionUnstaged:
-			help = m.helpHint("↑/↓ nav | enter diff | s stage | x discard | S all | c commit | r refresh" + panelHint + " | esc quit")
+			help = m.helpHint("↑/↓ nav | enter diff | s stage | x discard | S all | c commit | r refresh" + panelHint + " | esc back")
 		case row.section == changesSectionStaged:
-			help = m.helpHint("↑/↓ nav | enter diff | u unstage | U all | c commit | P push" + panelHint + " | esc quit")
+			help = m.helpHint("↑/↓ nav | enter diff | u unstage | U all | c commit | P push" + panelHint + " | esc back")
 		case row.section == changesSectionUnpushed:
-			help = m.helpHint("↑/↓ nav | enter show | x undo commit | P push | r refresh" + panelHint + " | esc quit")
+			help = m.helpHint("↑/↓ nav | enter show | x undo commit | P push | r refresh" + panelHint + " | esc back")
 		case row.section == changesSectionIncoming:
-			help = m.helpHint("↑/↓ nav | enter show | " + m.incomingRowActionHint() + " | r refresh" + panelHint + " | esc quit")
+			help = m.helpHint("↑/↓ nav | enter show | " + m.incomingRowActionHint() + " | r refresh" + panelHint + " | esc back")
 		default:
-			help = m.helpHint("↑/↓ nav | enter diff | r refresh | / filter | tab switch | ? keys" + panelHint + " | esc quit")
+			help = m.helpHint("↑/↓ nav | enter diff | r refresh | / filter | tab switch | ? keys" + panelHint + " | esc back")
 		}
 	}
 	return statusBar + "\n" + help

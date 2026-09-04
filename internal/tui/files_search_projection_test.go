@@ -301,3 +301,92 @@ func TestOpenUnmanagedActionsMenuDirectoryOmitsOpenInEditor(t *testing.T) {
 		}
 	}
 }
+
+func TestManagedStatusBarShowsSearchResultChip(t *testing.T) {
+	cases := []struct {
+		name       string
+		viewMode   managedViewMode
+		filter     string
+		searching  bool
+		terminated string
+		want       string
+		absent     string
+	}{
+		{name: "limit reached", viewMode: managedViewUnmanaged, filter: "x", terminated: "max-results", want: "[2 found, limit reached]"},
+		{name: "complete", viewMode: managedViewUnmanaged, filter: "x", terminated: "complete", want: "[2 found]", absent: "found,"},
+		{name: "timed out", viewMode: managedViewAll, filter: "x", terminated: "deadline", want: "[3 found, timed out]"},
+		{name: "canceled", viewMode: managedViewUnmanaged, filter: "x", terminated: "canceled", absent: "found"},
+		{name: "searching", viewMode: managedViewUnmanaged, filter: "x", searching: true, terminated: "complete", want: "[searching...]", absent: "found"},
+		{name: "managed view", viewMode: managedViewManaged, filter: "x", terminated: "complete", absent: "found"},
+		{name: "empty filter", viewMode: managedViewUnmanaged, filter: "", terminated: "complete", absent: "found"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			m := newTestModel(WithManagedFiles([]string{"/home/u/.zshrc"}), WithSize(120, 40))
+			m.filesTab.viewMode = tc.viewMode
+			m.filesTab.views[managedViewManaged].filteredFiles = []string{"/home/u/.zshrc"}
+			m.filesTab.views[managedViewUnmanaged].filteredFiles = []string{"/home/u/a", "/home/u/b"}
+			m.filterInput.SetValue(tc.filter)
+			m.filesTab.search.searching = tc.searching
+			m.filesTab.search.lastMetrics = filesSearchMetrics{matches: 99, terminated: tc.terminated}
+
+			out := stripForGolden(m.renderManagedStatusBar())
+			if tc.want != "" && !strings.Contains(out, tc.want) {
+				t.Fatalf("expected %q in %q", tc.want, out)
+			}
+			if tc.absent != "" && strings.Contains(out, tc.absent) {
+				t.Fatalf("expected %q absent from %q", tc.absent, out)
+			}
+		})
+	}
+}
+
+func TestManagedStatusBarSearchChipCountsProjectedResults(t *testing.T) {
+	home := t.TempDir()
+	workspaceDir := filepath.Join(home, "Documents", "workspace")
+	if err := os.MkdirAll(workspaceDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	loose := filepath.Join(workspaceDir, "loose-notes.txt")
+	managed := filepath.Join(home, "managed-notes.txt")
+	for _, path := range []string{loose, managed} {
+		if err := os.WriteFile(path, []byte("hello"), 0o644); err != nil {
+			t.Fatalf("write %s: %v", path, err)
+		}
+	}
+	unknown := filepath.Join(t.TempDir(), "other-notes.txt")
+
+	cases := []struct {
+		name string
+		mode managedViewMode
+		want string
+	}{
+		{name: "unmanaged counts only unmanaged matches", mode: managedViewUnmanaged, want: "[1 found]"},
+		{name: "all excludes unknown paths", mode: managedViewAll, want: "[2 found]"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			m := NewModel(Options{Service: testServiceWithTarget(home)})
+			m.targetPath = home
+			m.filesTab.viewMode = tc.mode
+			m.filesTab.treeView = true
+			m.filesTab.views[managedViewManaged].files = []string{managed}
+			m.filesTab.views[managedViewIgnored].files = []string{}
+			m.filesTab.views[managedViewUnmanaged].files = []string{workspaceDir}
+			m.filesTab.dataset = rebuildDataset(&m.filesTab)
+			m.rebuildAllFileViewTree()
+			m.filesTab.search.rawResults = []string{loose, managed, unknown}
+			m.filesTab.search.query = "notes"
+			m.filesTab.search.ready = true
+			m.filesTab.search.lastMetrics = filesSearchMetrics{matches: 3, terminated: "complete"}
+			m.filterInput.SetValue("notes")
+
+			m.applyManagedFilter()
+
+			out := stripForGolden(m.renderManagedStatusBar())
+			if !strings.Contains(out, tc.want) {
+				t.Fatalf("expected %q in %q", tc.want, out)
+			}
+		})
+	}
+}

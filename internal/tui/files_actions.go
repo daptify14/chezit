@@ -92,8 +92,8 @@ func (m *Model) openFilesActionsMenu() {
 			m.actions.managedItems,
 			"View Source",
 			chezmoiActionViewSource,
-			"", !readOnly,
-			"read-only mode",
+			"", true,
+			"",
 		)
 		m.actions.managedItems = appendActionItem(
 			m.actions.managedItems,
@@ -134,10 +134,6 @@ func (m Model) executeFilesAction(action chezmoiAction) (tea.Model, tea.Cmd) {
 
 	switch action {
 	case chezmoiActionViewSource:
-		if m.service.IsReadOnly() {
-			m.ui.message = actionUnavailableMessage("read-only mode")
-			return m, nil
-		}
 		m.ui.busyAction = true
 		return m, tea.Batch(m.ui.loadingSpinner.Tick, m.loadSourceContentCmd(path))
 

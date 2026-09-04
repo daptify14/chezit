@@ -6,6 +6,8 @@ import (
 	"os/exec"
 
 	tea "charm.land/bubbletea/v2"
+
+	"github.com/daptify14/chezit/internal/chezmoi"
 )
 
 // --- Command Execution ---
@@ -108,13 +110,13 @@ func (m Model) executeChezmoiCommand(id chezmoiCommandID) (tea.Model, tea.Cmd) {
 	// --- Editor shell-out commands ---
 	case chezmoiCmdEditSource:
 		cmd := m.service.EditSourceCmd()
-		return m, execCmdOrUnsupported(chezmoiActionEditSource, cmd, "chezmoi: edit not supported")
+		return m, execCmdOrReadOnly(chezmoiActionEditSource, cmd)
 	case chezmoiCmdEditConfig:
 		cmd := m.service.EditConfigCmd()
-		return m, execCmdOrUnsupported(chezmoiActionEditSource, cmd, "chezmoi: config editing not supported")
+		return m, execCmdOrReadOnly(chezmoiActionEditSource, cmd)
 	case chezmoiCmdEditConfigTemplate:
 		cmd := m.service.EditConfigTemplateCmd()
-		return m, execCmdOrUnsupported(chezmoiActionEditSource, cmd, "chezmoi: config template not found")
+		return m, execCmdOrReadOnly(chezmoiActionEditSource, cmd)
 	}
 	return m, nil
 }
@@ -159,10 +161,11 @@ func wrapWithPressEnter(cmd *exec.Cmd) *exec.Cmd {
 	return wrapped
 }
 
-func execCmdOrUnsupported(action chezmoiAction, cmd *exec.Cmd, msg string) tea.Cmd {
+// execCmdOrReadOnly runs cmd, or reports the read-only refusal behind a nil cmd.
+func execCmdOrReadOnly(action chezmoiAction, cmd *exec.Cmd) tea.Cmd {
 	if cmd == nil {
 		return func() tea.Msg {
-			return chezmoiExecDoneMsg{action: action, err: fmt.Errorf("%s", msg)}
+			return chezmoiExecDoneMsg{action: action, err: chezmoi.ErrReadOnly}
 		}
 	}
 	return tea.ExecProcess(cmd, func(err error) tea.Msg {

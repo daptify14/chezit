@@ -83,3 +83,19 @@ func TestDriftRowHelpHintShowsReAddOnlyWhenAvailable(t *testing.T) {
 		}
 	})
 }
+
+func TestTabHintsSayEscBack(t *testing.T) {
+	for tab := range 4 {
+		m := newTestModel(WithView(StatusScreen), WithTab(tab), WithSize(120, 40))
+		m.ui.loading = false
+		m.status.loadingGit = false
+		m.filesTab.views[managedViewManaged].loading = false
+		out := stripForGolden(m.View().Content)
+		if strings.Contains(out, "esc quit") {
+			t.Fatalf("tab %d still says esc quit:\n%s", tab, out)
+		}
+		if !strings.Contains(out, "esc back") {
+			t.Fatalf("tab %d does not say esc back:\n%s", tab, out)
+		}
+	}
+}

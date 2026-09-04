@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"errors"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -129,7 +130,7 @@ func containsMsgType(msgs []tea.Msg, example tea.Msg) bool {
 	return false
 }
 
-func TestAllLandingStatsLoadedIgnoresDeferredGitInReadOnlyMode(t *testing.T) {
+func TestAllLandingStatsLoadedWaitsForDeferredGitInReadOnlyMode(t *testing.T) {
 	m := NewModel(Options{Service: testServiceReadOnly(), InitialTab: "Files"})
 	m.ui.loading = false
 	m.filesTab.views[managedViewManaged].loading = false
@@ -138,12 +139,45 @@ func TestAllLandingStatsLoadedIgnoresDeferredGitInReadOnlyMode(t *testing.T) {
 	if !m.status.gitDeferred {
 		t.Fatal("expected gitDeferred to be true for direct files startup")
 	}
-	if !m.allLandingStatsLoaded() {
-		t.Fatal("expected landing stats to be ready in read-only mode even with deferred git")
+	if m.allLandingStatsLoaded() {
+		t.Fatal("expected landing stats to wait for deferred git in read-only mode")
 	}
 }
 
-func TestApplyAllCmdReturnsUnsupportedErrorWhenNil(t *testing.T) {
+func TestEscFromDeferredTabLoadsLandingStats(t *testing.T) {
+	m := NewModel(Options{Service: testService(), InitialTab: "files", AutoFetch: true})
+
+	next, cmd := m.escCmd()
+	if next.view != LandingScreen {
+		t.Fatalf("expected LandingScreen, got %v", next.view)
+	}
+	if cmd == nil {
+		t.Fatal("expected deferred loads to start")
+	}
+	if next.status.statusDeferred || next.status.gitDeferred {
+		t.Fatal("expected deferred flags cleared")
+	}
+	if !next.ui.loading || !next.status.loadingGit {
+		t.Fatal("expected status and git loading")
+	}
+	if !next.status.fetchInProgress {
+		t.Fatal("expected auto-fetch to start with the deferred git load")
+	}
+}
+
+func TestEscFromReadyTabReturnsNoCmd(t *testing.T) {
+	m := NewModel(Options{Service: testService()})
+
+	next, cmd := m.escCmd()
+	if next.view != LandingScreen {
+		t.Fatalf("expected LandingScreen, got %v", next.view)
+	}
+	if cmd != nil {
+		t.Fatal("expected no cmd when nothing was deferred")
+	}
+}
+
+func TestApplyAllCmdReturnsReadOnlyErrorWhenNil(t *testing.T) {
 	m := NewModel(Options{Service: testServiceReadOnly()})
 
 	msg := m.applyAllCmd()()
@@ -151,8 +185,32 @@ func TestApplyAllCmdReturnsUnsupportedErrorWhenNil(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected chezmoiExecDoneMsg, got %T", msg)
 	}
-	if done.err == nil || !strings.Contains(done.err.Error(), "apply not supported") {
-		t.Fatalf("expected apply-not-supported error, got %v", done.err)
+	if !errors.Is(done.err, chezmoi.ErrReadOnly) {
+		t.Fatalf("expected read-only error, got %v", done.err)
+	}
+}
+
+func TestHandleExecDoneReadOnlyShowsUnavailableWithoutReload(t *testing.T) {
+	m := NewModel(Options{Service: testServiceReadOnly()})
+	m.ui.busyAction = true
+	gen := m.gen
+
+	updatedAny, cmd := m.Update(chezmoiExecDoneMsg{action: chezmoiActionApplyAll, err: chezmoi.ErrReadOnly})
+	updated, ok := updatedAny.(Model)
+	if !ok {
+		t.Fatalf("expected Model, got %T", updatedAny)
+	}
+	if cmd != nil {
+		t.Fatal("expected no reload cmd after a read-only refusal")
+	}
+	if updated.ui.message != actionUnavailableMessage("read-only mode") {
+		t.Fatalf("expected read-only message, got %q", updated.ui.message)
+	}
+	if updated.gen != gen {
+		t.Fatalf("expected gen unchanged at %d, got %d", gen, updated.gen)
+	}
+	if updated.ui.busyAction {
+		t.Fatal("expected busyAction cleared")
 	}
 }
 

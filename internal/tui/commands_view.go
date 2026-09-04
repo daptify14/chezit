@@ -107,7 +107,7 @@ func (m Model) renderCommandsStatusBar() string {
 	if m.cmds.cursor < len(m.cmds.items) && m.cmds.items[m.cmds.cursor].supportsDryRun {
 		helpText += " | d dry run"
 	}
-	helpText += " | tab switch | ? keys | esc quit"
+	helpText += " | tab switch | ? keys | esc back"
 	help := m.helpHint(helpText)
 	return statusBar + "\n" + help
 }

@@ -385,14 +385,17 @@ func (m Model) renderManagedStatusBar() string {
 	viewChip := fmt.Sprintf("[view:%s]", strings.ToLower(managedViewModeLabel(m.filesTab.viewMode)))
 	status = strings.TrimRight(status, " ") + " " + viewChip + " " + filterChip + " "
 
-	if m.filesTab.search.searching &&
-		m.filterInput.Value() != "" &&
-		(m.filesTab.viewMode == managedViewUnmanaged || m.filesTab.viewMode == managedViewAll) {
+	deepSearchView := m.filterInput.Value() != "" &&
+		(m.filesTab.viewMode == managedViewUnmanaged || m.filesTab.viewMode == managedViewAll)
+	switch {
+	case deepSearchView && m.filesTab.search.searching:
 		status = strings.TrimRight(status, " ") + " [searching...] "
-	} else if m.filesTab.search.paused &&
-		m.filterInput.Value() != "" &&
-		(m.filesTab.viewMode == managedViewUnmanaged || m.filesTab.viewMode == managedViewAll) {
+	case deepSearchView && m.filesTab.search.paused:
 		status = strings.TrimRight(status, " ") + " [search paused] "
+	case deepSearchView:
+		if chip := m.searchResultChip(); chip != "" {
+			status = strings.TrimRight(status, " ") + " " + chip + " "
+		}
 	}
 
 	statusBar := activeTheme.StatusBar.Width(m.effectiveWidth()).Render(status)
@@ -418,4 +421,18 @@ func (m Model) renderManagedStatusBar() string {
 		}
 	}
 	return statusBar + "\n" + help
+}
+
+// searchResultChip summarizes the last completed deep search for the active view.
+func (m Model) searchResultChip() string {
+	found := len(m.activeFlatFiles())
+	switch m.filesTab.search.lastMetrics.terminated {
+	case "complete":
+		return fmt.Sprintf("[%d found]", found)
+	case "max-results":
+		return fmt.Sprintf("[%d found, limit reached]", found)
+	case "deadline":
+		return fmt.Sprintf("[%d found, timed out]", found)
+	}
+	return ""
 }
