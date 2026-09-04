@@ -2,6 +2,7 @@ package tui
 
 import (
 	"path/filepath"
+	"slices"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
@@ -405,11 +406,7 @@ func (m Model) selectedManagedPath() string {
 	if m.filesTab.treeView {
 		rows := m.activeTreeRows()
 		if m.filesTab.cursor >= 0 && m.filesTab.cursor < len(rows) {
-			row := rows[m.filesTab.cursor]
-			if row.node.isDir {
-				return row.node.relPath
-			}
-			return row.node.absPath
+			return rows[m.filesTab.cursor].selectionPath()
 		}
 		return ""
 	}
@@ -436,6 +433,25 @@ func (m Model) selectedManagedPathForOpen() string {
 		return ""
 	}
 	return filepath.Join(m.targetPath, row.node.relPath)
+}
+
+// filesCursorForPath returns the row showing path in the active view. When the
+// path is gone the current cursor is clamped rather than sent back to the top.
+func (m Model) filesCursorForPath(path string) int {
+	if m.filesTab.treeView {
+		rows := m.activeTreeRows()
+		for i, row := range rows {
+			if row.selectionPath() == path {
+				return i
+			}
+		}
+		return min(m.filesTab.cursor, max(0, len(rows)-1))
+	}
+	files := m.activeFlatFiles()
+	if i := slices.Index(files, path); i >= 0 {
+		return i
+	}
+	return min(m.filesTab.cursor, max(0, len(files)-1))
 }
 
 // --- Files tab query helpers ---

@@ -31,6 +31,14 @@ type flatTreeRow struct {
 	fileCount  int
 }
 
+// selectionPath identifies a row across tree rebuilds: relPath for directories, absPath for files.
+func (r flatTreeRow) selectionPath() string {
+	if r.node.isDir {
+		return r.node.relPath
+	}
+	return r.node.absPath
+}
+
 type managedTree struct {
 	roots     []*managedTreeNode
 	dirCount  int
