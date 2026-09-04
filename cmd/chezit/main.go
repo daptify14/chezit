@@ -68,6 +68,7 @@ func runTUI(initialTab string) error {
 	client := chezmoi.New(
 		chezmoi.WithBinaryPath(cfg.BinaryPath),
 		chezmoi.WithConfigPath(cfg.ChezmoiConfig),
+		chezmoi.WithEditor(cfg.Editor),
 	)
 	tp, err := client.TargetPath()
 	if err != nil {
@@ -107,6 +108,7 @@ func runTUI(initialTab string) error {
 		Service:       svc,
 		EscBehavior:   tui.EscQuit,
 		CommitPresets: cfg.CommitPresets,
+		Editor:        cfg.Editor,
 		EditConfig:    editCfg,
 		PanelMode:     cfg.Panel,
 		AutoFetch:     cfg.AutoFetchEnabled(),

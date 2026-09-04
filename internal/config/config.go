@@ -37,6 +37,7 @@ type Config struct {
 	Mode          Mode     `yaml:"mode"`
 	BinaryPath    string   `yaml:"binary_path"`
 	ChezmoiConfig string   `yaml:"chezmoi_config_path"`
+	Editor        string   `yaml:"editor"` // overrides $VISUAL/$EDITOR for edit commands; may include arguments
 	CommitPresets []string `yaml:"commit_presets"`
 	DiffBuiltin   bool     `yaml:"diff_builtin"`
 	AutoFetch     *bool    `yaml:"auto_fetch"` // nil or true = fetch on startup; false disables
@@ -72,6 +73,7 @@ func (c *Config) Normalize() {
 	if c.ChezmoiConfig != "" {
 		c.ChezmoiConfig = expandPath(c.ChezmoiConfig)
 	}
+	c.Editor = strings.TrimSpace(c.Editor)
 	if len(c.CommitPresets) > 0 {
 		c.CommitPresets = normalizeStringList(c.CommitPresets)
 	}

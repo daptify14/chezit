@@ -55,7 +55,7 @@ func WithConfigPath(path string) Option {
 	}
 }
 
-// WithEditor overrides $EDITOR in the command environment for edit commands.
+// WithEditor overrides $VISUAL and $EDITOR for edit commands.
 func WithEditor(editor string) Option {
 	return func(c *Client) {
 		c.Editor = strings.TrimSpace(editor)
@@ -461,9 +461,10 @@ func (c *Client) CatTarget(filePath string) (string, error) {
 	return string(output), nil
 }
 
+// applyEditorEnv sets both variables because chezmoi reads VISUAL before EDITOR.
 func (c *Client) applyEditorEnv(cmd *exec.Cmd) {
 	if c.Editor != "" {
-		cmd.Env = append(os.Environ(), "EDITOR="+c.Editor)
+		cmd.Env = append(os.Environ(), "VISUAL="+c.Editor, "EDITOR="+c.Editor)
 	}
 }
 
