@@ -34,11 +34,30 @@ checksum:
 
 changelog:
   sort: asc
+  format: "{{ .Message }}"
   filters:
     exclude:
       - "^docs:"
       - "^test:"
       - "^chore:"
+  groups:
+    - title: Breaking changes
+      regexp: '^[[:word:]]+(\([[:word:]]+\))?!:'
+      order: 0
+    - title: Dependencies
+      regexp: '^fix\(deps\):'
+      order: 900
+    - title: Tooling and CI
+      regexp: '^chore\(deps\):'
+      order: 910
+    - title: Features
+      regexp: '^feat(\([[:word:]]+\))?:'
+      order: 100
+    - title: Bug fixes
+      regexp: '^fix(\([[:word:]]+\))?:'
+      order: 200
+    - title: Other changes
+      order: 999
 
 homebrew_casks:
   - name: chezit
