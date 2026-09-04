@@ -1,6 +1,6 @@
 module github.com/daptify14/chezit
 
-go 1.26.6
+go 1.27.1
 
 require (
 	charm.land/bubbles/v2 v2.2.1
