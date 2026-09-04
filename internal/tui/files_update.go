@@ -21,11 +21,12 @@ func (m Model) handleManagedLoaded(msg chezmoiManagedLoadedMsg) (tea.Model, tea.
 			m.ui.message = "Error: " + msg.err.Error()
 		}
 	} else {
+		selected := m.selectedManagedPath()
 		m.filesTab.views[managedViewManaged].files = msg.files
 		m.filesTab.views[managedViewManaged].filteredFiles = msg.files
-		m.filesTab.cursor = 0
 		m.rebuildFileViewTree(managedViewManaged)
 		m.rebuildDatasetAndAllView()
+		m.filesTab.cursor = m.filesCursorForPath(selected)
 	}
 	if m.allLandingStatsLoaded() && !m.landing.statsReady {
 		return m, tea.Batch(nil, debounceLandingReadyCmd())

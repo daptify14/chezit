@@ -224,10 +224,10 @@ func TestManagedLoadedMsgRouting(t *testing.T) {
 		"/home/test/.config/nvim/init.lua",
 	}
 
-	t.Run("fresh gen stores files and resets cursor", func(t *testing.T) {
+	t.Run("fresh gen stores files and clamps stale cursor", func(t *testing.T) {
 		m := newTestModel()
 		m.filesTab.views[managedViewManaged].loading = true
-		m.filesTab.cursor = 5 // non-zero cursor to verify reset
+		m.filesTab.cursor = 5 // beyond any row; must land inside the loaded tree
 		gen := m.gen
 
 		msg := chezmoiManagedLoadedMsg{files: testFiles, gen: gen}
@@ -244,8 +244,8 @@ func TestManagedLoadedMsgRouting(t *testing.T) {
 			t.Fatalf("expected %d filtered managed files, got %d",
 				len(testFiles), len(updated.filesTab.views[managedViewManaged].filteredFiles))
 		}
-		if updated.filesTab.cursor != 0 {
-			t.Fatalf("expected cursor reset to 0, got %d", updated.filesTab.cursor)
+		if rows := updated.activeTreeRows(); updated.filesTab.cursor < 0 || updated.filesTab.cursor >= len(rows) {
+			t.Fatalf("expected cursor clamped into %d rows, got %d", len(rows), updated.filesTab.cursor)
 		}
 	})
 
