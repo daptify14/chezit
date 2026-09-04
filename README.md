@@ -43,6 +43,8 @@ chezit commands     # jump to Commands tab
 chezit --version    # print version
 ```
 
+On the landing page, `f` fetches from the remote.
+
 ## Tabs
 
 ### Status
@@ -50,6 +52,8 @@ chezit --version    # print version
 ![Status tab](docs/assets/status.png)
 
 Organized into sections — Incoming, Local Drift, Unstaged, Staged, and Unpushed Commits — covering upstream changes, source/target drift, and git operations from staging through push. Each section offers context-aware actions, with diffs or file content shown in the side panel.
+
+The header shows the branch, ahead/behind counts, and how fresh the upstream comparison is (`fetched 2m ago`, `upstream unreachable`, `no upstream`).
 
 Local Drift distinguishes source/target state:
 
@@ -166,6 +170,7 @@ commit_presets: []   # e.g. ["dotfiles: update config"]
 binary_path: ""      # e.g. /opt/homebrew/bin/chezmoi (only needed when chezmoi is not on $PATH)
 chezmoi_config_path: "" # optional custom chezmoi config file path (equivalent to --config)
 diff_builtin: false  # true = ignore chezmoi diff.pager and use chezit's built-in diff rendering
+auto_fetch: true     # false = never fetch on startup; f still fetches on demand
 ```
 
 Colors adapt automatically to your terminal background (dark or light) at startup using Catppuccin palettes.
@@ -181,6 +186,7 @@ Defaults are shown in the YAML example above.
 | `binary_path` | path to `chezmoi` binary (`~` supported) | Set only if `chezmoi` is not on `PATH`. |
 | `chezmoi_config_path` | path to chezmoi config file (`~` supported) | Optional. Use to force chezit to run every chezmoi command with `--config <path>`. |
 | `diff_builtin` | `true`, `false` | When `true`, bypass chezmoi's `diff.pager` and use chezit's built-in diff rendering instead. |
+| `auto_fetch` | `true`, `false` | When `true` (default), fetch from the remote in the background when git info first loads so ahead/behind reflect upstream. Failures show as an indicator, never an error. |
 
 ## Diff Pager Support
 

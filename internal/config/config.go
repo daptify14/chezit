@@ -39,13 +39,21 @@ type Config struct {
 	ChezmoiConfig string   `yaml:"chezmoi_config_path"`
 	CommitPresets []string `yaml:"commit_presets"`
 	DiffBuiltin   bool     `yaml:"diff_builtin"`
+	AutoFetch     *bool    `yaml:"auto_fetch"` // nil or true = fetch on startup; false disables
 }
 
 func Default() Config {
 	return Config{
-		Icons: "nerdfont",
-		Mode:  ModeWrite,
+		Icons:     "nerdfont",
+		Mode:      ModeWrite,
+		AutoFetch: new(true),
 	}
+}
+
+// AutoFetchEnabled reports whether chezit should fetch from the remote when
+// git info first loads. An absent key means yes.
+func (c Config) AutoFetchEnabled() bool {
+	return c.AutoFetch == nil || *c.AutoFetch
 }
 
 func (c *Config) Normalize() {

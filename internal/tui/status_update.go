@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -8,6 +9,8 @@ import (
 
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
+
+	"github.com/daptify14/chezit/internal/chezmoi"
 )
 
 // --- Status tab message handlers ---
@@ -39,10 +42,11 @@ func (m Model) handleStatusLoaded(msg chezmoiStatusLoadedMsg) (tea.Model, tea.Cm
 }
 
 func (m Model) handleGitStatusLoaded(msg chezmoiGitStatusLoadedMsg) (tea.Model, tea.Cmd) {
-	if msg.gen != m.gen {
+	if msg.gen != m.gen || msg.seq != m.status.gitReadSeq {
 		return m, nil
 	}
 	m.status.loadingGit = false
+	m.status.gitReadPending = false
 	if msg.err != nil {
 		if m.activeTabName() == "Status" {
 			m.ui.message = "Error: " + msg.err.Error()
@@ -80,7 +84,7 @@ func (m Model) handleGitActionDone(msg chezmoiGitActionDoneMsg) (tea.Model, tea.
 }
 
 func (m Model) handleGitCommitsLoaded(msg chezmoiGitCommitsLoadedMsg) (tea.Model, tea.Cmd) {
-	if msg.gen != m.gen {
+	if msg.gen != m.gen || msg.seq != m.status.gitReadSeq {
 		return m, nil
 	}
 	if msg.err != nil {
@@ -93,15 +97,67 @@ func (m Model) handleGitCommitsLoaded(msg chezmoiGitCommitsLoadedMsg) (tea.Model
 	return m, nil
 }
 
+// handleGitFetchDone ignores msg.gen on purpose: dropping a stale result would
+// latch fetchInProgress, and the reloads it triggers capture the current gen.
 func (m Model) handleGitFetchDone(msg chezmoiGitFetchDoneMsg) (tea.Model, tea.Cmd) {
 	m.status.fetchInProgress = false
+	manual := m.status.fetchManual
+	m.status.fetchManual = false
 	if msg.err != nil {
-		m.ui.message = "Fetch error: " + msg.err.Error()
+		m.status.fetchOutcome = fetchFailed
+		m.status.fetchReason = fetchReasonFor(msg.err)
+		if manual {
+			m.ui.message = "fetch failed: " + m.status.fetchReason
+		}
 		return m, nil
 	}
+	m.status.fetchOutcome = fetchOK
+	m.status.fetchReason = ""
 	m.status.lastFetchTime = time.Now()
-	m.ui.message = "fetch complete"
-	return m, tea.Batch(m.loadGitCommitsCmd(), m.loadGitStatusCmd())
+	if manual {
+		m.ui.message = "fetch complete"
+	}
+	// Retire any in-flight pre-fetch reads: a late one must not overwrite
+	// the comparison made against the refreshed tracking ref.
+	m.status.gitReadSeq++
+	m.status.gitReadPending = true
+	cmds := []tea.Cmd{m.loadGitCommitsCmd(), m.loadGitStatusCmd()}
+	if !m.status.fetchAgeTicking {
+		m.status.fetchAgeTicking = true
+		cmds = append(cmds, fetchAgeTickCmd())
+	}
+	return m, tea.Batch(cmds...)
+}
+
+func fetchAgeTickCmd() tea.Cmd {
+	return tea.Tick(time.Minute, func(time.Time) tea.Msg { return fetchAgeTickMsg{} })
+}
+
+// handleFetchAgeTick re-arms the minute tick while there is an age to show.
+func (m Model) handleFetchAgeTick() (tea.Model, tea.Cmd) {
+	if m.status.fetchOutcome == fetchOK {
+		return m, fetchAgeTickCmd()
+	}
+	m.status.fetchAgeTicking = false
+	return m, nil
+}
+
+// fetchReasonGeneric labels an unclassified fetch failure; unlike classified
+// reasons, the header renders it without an "upstream " prefix.
+const fetchReasonGeneric = "fetch failed"
+
+// fetchReasonFor maps a GitFetch error to the short label shown in the UI.
+func fetchReasonFor(err error) string {
+	switch {
+	case errors.Is(err, chezmoi.ErrFetchTimeout):
+		return "timed out"
+	case errors.Is(err, chezmoi.ErrFetchAuth):
+		return "auth failed"
+	case errors.Is(err, chezmoi.ErrFetchUnreachable):
+		return "unreachable"
+	default:
+		return fetchReasonGeneric
+	}
 }
 
 func (m Model) handleTemplatePathsLoaded(msg templatePathsLoadedMsg) (tea.Model, tea.Cmd) {
@@ -383,22 +439,43 @@ func (m Model) handleStatusPush() (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// fetchCooldown is the minimum gap between two manual fetches.
+const fetchCooldown = 30 * time.Second
+
+// startFetch begins a fetch unless one is running, there is no upstream, or
+// (manual only) the cooldown applies. Only manual fetches touch the message line.
+func (m Model) startFetch(manual bool) (Model, tea.Cmd) {
+	switch {
+	case m.status.gitInfo.Sync == chezmoi.GitSyncNoUpstream:
+		if manual {
+			m.ui.message = "no upstream configured"
+		}
+		return m, nil
+	case m.status.fetchInProgress:
+		if manual {
+			m.ui.message = "fetch already in progress"
+		}
+		return m, nil
+	case manual && time.Since(m.status.lastFetchTime) < fetchCooldown:
+		elapsed := time.Since(m.status.lastFetchTime).Round(time.Second)
+		m.ui.message = fmt.Sprintf("fetch cooldown (last fetch %s ago)", elapsed)
+		return m, nil
+	}
+	m.status.fetchInProgress = true
+	m.status.fetchManual = manual
+	if manual {
+		m.ui.message = "fetching..."
+	}
+	return m, tea.Batch(m.ui.loadingSpinner.Tick, m.gitFetchCmd())
+}
+
 func (m Model) handleStatusFetch(row changesRow) (tea.Model, tea.Cmd) {
 	m.clearStatusSelection()
-	if row.section == changesSectionIncoming {
-		switch {
-		case m.status.fetchInProgress:
-			m.ui.message = "fetch already in progress"
-		case time.Since(m.status.lastFetchTime) < 5*time.Minute:
-			elapsed := time.Since(m.status.lastFetchTime).Round(time.Second)
-			m.ui.message = fmt.Sprintf("fetch cooldown (last fetch %s ago)", elapsed)
-		default:
-			m.status.fetchInProgress = true
-			m.ui.message = "fetching..."
-			return m, tea.Batch(m.ui.loadingSpinner.Tick, m.gitFetchCmd())
-		}
+	if row.section != changesSectionIncoming {
+		return m, nil
 	}
-	return m, nil
+	next, cmd := m.startFetch(true)
+	return next, cmd
 }
 
 func (m Model) handleStatusPull(row changesRow) (tea.Model, tea.Cmd) {

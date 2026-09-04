@@ -100,11 +100,59 @@ type GitFile struct {
 	StatusCode string
 }
 
+// GitSyncState describes HEAD relative to its upstream. The zero value is
+// GitSyncUnknown: a failed comparison must never render as "synced".
+type GitSyncState int
+
+const (
+	GitSyncUnknown GitSyncState = iota
+	GitSyncNoUpstream
+	GitSyncSynced
+	GitSyncAhead
+	GitSyncBehind
+	GitSyncDiverged
+)
+
+// String is for debug logs and test failure messages.
+func (s GitSyncState) String() string {
+	switch s {
+	case GitSyncUnknown:
+		return "unknown"
+	case GitSyncNoUpstream:
+		return "no-upstream"
+	case GitSyncSynced:
+		return "synced"
+	case GitSyncAhead:
+		return "ahead"
+	case GitSyncBehind:
+		return "behind"
+	case GitSyncDiverged:
+		return "diverged"
+	}
+	return "unknown"
+}
+
+// classifySync maps ahead/behind counts to a sync state. Argument order
+// matches the GitInfo field order.
+func classifySync(ahead, behind int) GitSyncState {
+	switch {
+	case ahead > 0 && behind > 0:
+		return GitSyncDiverged
+	case ahead > 0:
+		return GitSyncAhead
+	case behind > 0:
+		return GitSyncBehind
+	}
+	return GitSyncSynced
+}
+
 type GitInfo struct {
-	Branch string
-	Ahead  int
-	Behind int
-	Remote string
+	Branch   string
+	Upstream string // e.g. "origin/main"; empty unless Sync is Synced/Ahead/Behind/Diverged
+	Ahead    int
+	Behind   int
+	Remote   string
+	Sync     GitSyncState
 }
 
 // GitCommit is a parsed line from `git log --oneline`.

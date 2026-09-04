@@ -34,6 +34,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
+	// Background git results are cross-cutting: one that lands while the
+	// commit form is open must still clear fetchInProgress or re-arm the tick.
+	switch msg := msg.(type) {
+	case chezmoiGitStatusLoadedMsg:
+		return m.handleGitStatusLoaded(msg)
+	case chezmoiGitCommitsLoadedMsg:
+		return m.handleGitCommitsLoaded(msg)
+	case chezmoiGitFetchDoneMsg:
+		return m.handleGitFetchDone(msg)
+	case fetchAgeTickMsg:
+		return m.handleFetchAgeTick()
+	}
+
 	// Route all messages to huh forms when commit view is active.
 	if m.view == CommitScreen {
 		return m.handleCommitUpdate(msg)
@@ -59,14 +72,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Status tab messages
 	case chezmoiStatusLoadedMsg:
 		return m.handleStatusLoaded(msg)
-	case chezmoiGitStatusLoadedMsg:
-		return m.handleGitStatusLoaded(msg)
 	case chezmoiGitActionDoneMsg:
 		return m.handleGitActionDone(msg)
-	case chezmoiGitCommitsLoadedMsg:
-		return m.handleGitCommitsLoaded(msg)
-	case chezmoiGitFetchDoneMsg:
-		return m.handleGitFetchDone(msg)
 	case templatePathsLoadedMsg:
 		return m.handleTemplatePathsLoaded(msg)
 

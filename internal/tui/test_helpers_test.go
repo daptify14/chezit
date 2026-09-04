@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
@@ -44,14 +45,15 @@ func testServiceWithTarget(targetPath string) *chezmoi.Service {
 // Options populate this struct; newTestModel reads it once to construct
 // the Model. This avoids order-dependent option footguns.
 type testModelConfig struct {
-	service  *chezmoi.Service
-	readOnly bool
-	view     Screen
-	tab      int
-	width    int
-	height   int
-	iconMode IconMode
-	postInit []func(*Model)
+	service   *chezmoi.Service
+	readOnly  bool
+	view      Screen
+	tab       int
+	width     int
+	height    int
+	iconMode  IconMode
+	autoFetch bool
+	postInit  []func(*Model)
 }
 
 // TestModelOption configures a test Model via testModelConfig.
@@ -86,6 +88,42 @@ func WithDriftFiles(files []chezmoi.FileStatus) TestModelOption {
 			// exception to the project immutability style -- unavoidable when
 			// populating derived state from synthetic test data.
 			m.buildChangesRows()
+		})
+	}
+}
+
+// WithAutoFetch sets Options.AutoFetch for the constructed model.
+func WithAutoFetch(enabled bool) TestModelOption {
+	return func(c *testModelConfig) {
+		c.autoFetch = enabled
+	}
+}
+
+// WithGitSync sets branch "main" with the given upstream comparison.
+// Upstream is "origin/main" unless the state implies there is none.
+func WithGitSync(sync chezmoi.GitSyncState, ahead, behind int) TestModelOption {
+	return func(c *testModelConfig) {
+		c.postInit = append(c.postInit, func(m *Model) {
+			info := chezmoi.GitInfo{Branch: "main", Upstream: "origin/main", Ahead: ahead, Behind: behind, Sync: sync}
+			if sync == chezmoi.GitSyncNoUpstream || sync == chezmoi.GitSyncUnknown {
+				info.Upstream = ""
+			}
+			m.status.gitInfo = info
+		})
+	}
+}
+
+// WithFetchState sets the session's fetch outcome. A fetchOK outcome dates
+// the fetch 2 minutes ago so renderers print "fetched 2m ago".
+func WithFetchState(outcome fetchOutcome, reason string, inFlight bool) TestModelOption {
+	return func(c *testModelConfig) {
+		c.postInit = append(c.postInit, func(m *Model) {
+			m.status.fetchOutcome = outcome
+			m.status.fetchReason = reason
+			m.status.fetchInProgress = inFlight
+			if outcome == fetchOK {
+				m.status.lastFetchTime = time.Now().Add(-2 * time.Minute)
+			}
 		})
 	}
 }
@@ -171,7 +209,7 @@ func newTestModel(opts ...TestModelOption) Model {
 		}
 	}
 
-	m := NewModel(Options{Service: svc, IconMode: cfg.iconMode})
+	m := NewModel(Options{Service: svc, IconMode: cfg.iconMode, AutoFetch: cfg.autoFetch})
 	m.view = cfg.view
 	m.activeTab = cfg.tab
 	m.width = cfg.width

@@ -30,3 +30,22 @@ func TestEntryFilterArgsEmptyFilter(t *testing.T) {
 		t.Fatalf("entryFilterArgs() = %#v, want empty slice", got)
 	}
 }
+
+func TestGitSyncStateString(t *testing.T) {
+	t.Parallel()
+
+	cases := map[GitSyncState]string{
+		GitSyncUnknown:    "unknown",
+		GitSyncNoUpstream: "no-upstream",
+		GitSyncSynced:     "synced",
+		GitSyncAhead:      "ahead",
+		GitSyncBehind:     "behind",
+		GitSyncDiverged:   "diverged",
+		GitSyncState(99):  "unknown",
+	}
+	for state, want := range cases {
+		if got := state.String(); got != want {
+			t.Errorf("GitSyncState(%d).String() = %q, want %q", int(state), got, want)
+		}
+	}
+}

@@ -42,6 +42,11 @@ type Options struct {
 	// "auto" shows when terminal >= 110 columns, "show" always shows, "hide" never shows.
 	PanelMode string
 
+	// AutoFetch starts a background git fetch when git info first loads so
+	// ahead/behind counts reflect the remote rather than the last fetch by
+	// some other tool. Failures are rendered as an indicator, never raised.
+	AutoFetch bool
+
 	// InitialTab sets the active tab when the TUI starts.
 	// Valid values: "Status", "Files", "Info", "Commands" (case-insensitive).
 	// If set, the landing screen is skipped. If empty, default behavior is used.
