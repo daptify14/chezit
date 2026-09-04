@@ -584,11 +584,11 @@ func (m Model) handleConfirmKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		case chezmoiActionRefresh:
 			cmd := m.service.ApplyRefreshCmd()
 			wrapped := wrapWithPressEnter(cmd)
-			return m, execCmdOrUnsupported(chezmoiActionRefresh, wrapped, "chezmoi: refresh not supported")
+			return m, execCmdOrReadOnly(chezmoiActionRefresh, wrapped)
 		case chezmoiActionInit:
 			cmd := m.service.InitCmd()
 			wrapped := wrapWithPressEnter(cmd)
-			return m, execCmdOrUnsupported(chezmoiActionInit, wrapped, "chezmoi: init not supported")
+			return m, execCmdOrReadOnly(chezmoiActionInit, wrapped)
 		case chezmoiActionReAdd:
 			m.ui.busyAction = true
 			return m, tea.Batch(m.ui.loadingSpinner.Tick, func() tea.Msg {
@@ -684,9 +684,9 @@ func (m Model) executeApplyConfirm() (tea.Model, tea.Cmd) {
 	cmd = wrapApplyConfirmCmd(cmd, wrapTTY)
 	switch action {
 	case chezmoiActionApplyAll:
-		return m, execCmdOrUnsupported(chezmoiActionApplyAll, cmd, "chezmoi: apply not supported")
+		return m, execCmdOrReadOnly(chezmoiActionApplyAll, cmd)
 	case chezmoiActionApplyFile, chezmoiActionApplyManaged:
-		return m, execCmdOrUnsupported(chezmoiActionApplyFile, cmd, "chezmoi: apply not supported")
+		return m, execCmdOrReadOnly(chezmoiActionApplyFile, cmd)
 	}
 	return m, nil
 }

@@ -91,12 +91,12 @@ func (m Model) reAddSelectionCmd(paths []string) tea.Cmd {
 
 func (m Model) applyAllCmd() tea.Cmd {
 	cmd := m.service.ApplyAllCmd()
-	return execCmdOrUnsupported(chezmoiActionApplyAll, cmd, "chezmoi: apply not supported")
+	return execCmdOrReadOnly(chezmoiActionApplyAll, cmd)
 }
 
 func (m Model) updateCmd() tea.Cmd {
 	cmd := m.service.UpdateCmd()
-	return execCmdOrUnsupported(chezmoiActionUpdate, cmd, "chezmoi: update not supported")
+	return execCmdOrReadOnly(chezmoiActionUpdate, cmd)
 }
 
 func (m Model) commitWithMsgCmd(message string) tea.Cmd {
@@ -313,7 +313,7 @@ func (m *Model) reloadStatusAndGitCmds() []tea.Cmd {
 
 func (m Model) editSourceCmd(path string) tea.Cmd {
 	cmd := m.service.EditCmd(path)
-	return execCmdOrUnsupported(chezmoiActionEditSource, cmd, "chezmoi: edit not supported")
+	return execCmdOrReadOnly(chezmoiActionEditSource, cmd)
 }
 
 // loadIgnoreFileContentCmd reads the .chezmoiignore file from the source directory.

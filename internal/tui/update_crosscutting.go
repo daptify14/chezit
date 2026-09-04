@@ -1,11 +1,14 @@
 package tui
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
+
+	"github.com/daptify14/chezit/internal/chezmoi"
 )
 
 // --- Cross-cutting message handlers ---
@@ -167,6 +170,10 @@ func (m Model) handleSourceDirResolved(msg sourceDirResolvedMsg) (tea.Model, tea
 
 func (m Model) handleExecDone(msg chezmoiExecDoneMsg) (tea.Model, tea.Cmd) {
 	m.ui.busyAction = false
+	if errors.Is(msg.err, chezmoi.ErrReadOnly) {
+		m.ui.message = actionUnavailableMessage("read-only mode")
+		return m, nil
+	}
 	if msg.err != nil {
 		m.ui.message = "Error: " + msg.err.Error()
 		if msg.action == chezmoiActionEditTarget {

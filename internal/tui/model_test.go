@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"errors"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -143,7 +144,7 @@ func TestAllLandingStatsLoadedIgnoresDeferredGitInReadOnlyMode(t *testing.T) {
 	}
 }
 
-func TestApplyAllCmdReturnsUnsupportedErrorWhenNil(t *testing.T) {
+func TestApplyAllCmdReturnsReadOnlyErrorWhenNil(t *testing.T) {
 	m := NewModel(Options{Service: testServiceReadOnly()})
 
 	msg := m.applyAllCmd()()
@@ -151,8 +152,32 @@ func TestApplyAllCmdReturnsUnsupportedErrorWhenNil(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected chezmoiExecDoneMsg, got %T", msg)
 	}
-	if done.err == nil || !strings.Contains(done.err.Error(), "apply not supported") {
-		t.Fatalf("expected apply-not-supported error, got %v", done.err)
+	if !errors.Is(done.err, chezmoi.ErrReadOnly) {
+		t.Fatalf("expected read-only error, got %v", done.err)
+	}
+}
+
+func TestHandleExecDoneReadOnlyShowsUnavailableWithoutReload(t *testing.T) {
+	m := NewModel(Options{Service: testServiceReadOnly()})
+	m.ui.busyAction = true
+	gen := m.gen
+
+	updatedAny, cmd := m.Update(chezmoiExecDoneMsg{action: chezmoiActionApplyAll, err: chezmoi.ErrReadOnly})
+	updated, ok := updatedAny.(Model)
+	if !ok {
+		t.Fatalf("expected Model, got %T", updatedAny)
+	}
+	if cmd != nil {
+		t.Fatal("expected no reload cmd after a read-only refusal")
+	}
+	if updated.ui.message != actionUnavailableMessage("read-only mode") {
+		t.Fatalf("expected read-only message, got %q", updated.ui.message)
+	}
+	if updated.gen != gen {
+		t.Fatalf("expected gen unchanged at %d, got %d", gen, updated.gen)
+	}
+	if updated.ui.busyAction {
+		t.Fatal("expected busyAction cleared")
 	}
 }
 
