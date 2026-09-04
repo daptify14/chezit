@@ -178,3 +178,30 @@ func TestNormalizeIconsTrimsAndLowercases(t *testing.T) {
 		t.Fatalf("expected normalized icons nerdfont, got %q", cfg.Icons)
 	}
 }
+
+func TestLoadFromParsesEditor(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	if err := os.WriteFile(path, []byte(`
+editor: "  code --wait "
+`), 0o600); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	cfg, err := LoadFrom(path)
+	if err != nil {
+		t.Fatalf("LoadFrom: %v", err)
+	}
+	if cfg.Editor != "code --wait" {
+		t.Fatalf("expected editor %q, got %q", "code --wait", cfg.Editor)
+	}
+}
+
+func TestLoadFromEditorDefaultsEmpty(t *testing.T) {
+	cfg, err := LoadFrom(filepath.Join(t.TempDir(), "missing.yaml"))
+	if err != nil {
+		t.Fatalf("LoadFrom: %v", err)
+	}
+	if cfg.Editor != "" {
+		t.Fatalf("expected empty editor default, got %q", cfg.Editor)
+	}
+}

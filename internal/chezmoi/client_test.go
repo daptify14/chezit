@@ -86,6 +86,44 @@ func TestClientCmdInjectsConfigPathFlag(t *testing.T) {
 	}
 }
 
+func TestWithEditorSetsVisualAndEditor(t *testing.T) {
+	t.Setenv("VISUAL", "other")
+	t.Setenv("EDITOR", "other")
+	client := New(WithEditor(" code --wait "))
+
+	cmds := map[string]*exec.Cmd{
+		"EditCmd":               client.EditCmd("/tmp/file"),
+		"EditSourceCmd":         client.EditSourceCmd(),
+		"EditConfigCmd":         client.EditConfigCmd(),
+		"EditConfigTemplateCmd": client.EditConfigTemplateCmd(),
+	}
+	for name, cmd := range cmds {
+		for _, key := range []string{"VISUAL", "EDITOR"} {
+			if got := lastEnv(cmd.Env, key); got != "code --wait" {
+				t.Errorf("%s: last %s = %q, want %q", name, key, got, "code --wait")
+			}
+		}
+	}
+}
+
+func TestWithoutEditorLeavesEnvNil(t *testing.T) {
+	cmd := New().EditCmd("/tmp/file")
+	if cmd.Env != nil {
+		t.Fatalf("expected nil Env so the process environment is inherited, got %d entries", len(cmd.Env))
+	}
+}
+
+// lastEnv returns the value of the last KEY= entry, which is the one exec uses.
+func lastEnv(env []string, key string) string {
+	value := ""
+	for _, kv := range env {
+		if v, ok := strings.CutPrefix(kv, key+"="); ok {
+			value = v
+		}
+	}
+	return value
+}
+
 func TestCommandConstructorsIncludeConfigFlag(t *testing.T) {
 	client := New(WithConfigPath("/tmp/custom.toml"))
 

@@ -134,7 +134,7 @@ func (p Policy) AvailableCommands(hasEditSource, hasEditConfig bool) []CommandAv
 
 	if !readOnly && hasEditSource {
 		cmds = append(cmds, CommandAvailability{
-			Label: "Edit Source", Description: "Open source directory in $EDITOR",
+			Label: "Edit Source", Description: "Open source directory in your editor",
 			Command: "chezmoi edit", Category: "edit",
 			Available: true,
 		})

@@ -169,6 +169,7 @@ panel: auto          # auto | show | hide
 commit_presets: []   # e.g. ["dotfiles: update config"]
 binary_path: ""      # e.g. /opt/homebrew/bin/chezmoi (only needed when chezmoi is not on $PATH)
 chezmoi_config_path: "" # optional custom chezmoi config file path (equivalent to --config)
+editor: ""           # e.g. "code --wait"; overrides $VISUAL and $EDITOR for edit actions
 diff_builtin: false  # true = ignore chezmoi diff.pager and use chezit's built-in diff rendering
 auto_fetch: true     # false = never fetch on startup; f still fetches on demand
 ```
@@ -185,6 +186,7 @@ Defaults are shown in the YAML example above.
 | `commit_presets` | list of strings | Optional preset commit messages shown in the commit flow. |
 | `binary_path` | path to `chezmoi` binary (`~` supported) | Set only if `chezmoi` is not on `PATH`. |
 | `chezmoi_config_path` | path to chezmoi config file (`~` supported) | Optional. Use to force chezit to run every chezmoi command with `--config <path>`. |
+| `editor` | editor command, arguments allowed | Optional. Used for `chezmoi edit` and chezit's own editor launches in place of `$VISUAL` and `$EDITOR`. chezit's own launches split the string on whitespace, while `chezmoi edit` parses quotes itself. chezmoi's `edit.command` still takes precedence for `chezmoi edit`, and chezit's own launches follow `edit.command` and `edit.args` the way chezmoi does when `editor` is unset. |
 | `diff_builtin` | `true`, `false` | When `true`, bypass chezmoi's `diff.pager` and use chezit's built-in diff rendering instead. |
 | `auto_fetch` | `true`, `false` | When `true` (default), fetch from the remote in the background when git info first loads so ahead/behind reflect upstream. Failures show as an indicator, never an error. |
 

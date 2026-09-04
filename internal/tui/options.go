@@ -33,10 +33,14 @@ type Options struct {
 	// These appear as quick-select options in the commit message input.
 	CommitPresets []string
 
-	// Editor overrides the $EDITOR environment variable for file editing.
+	// Editor overrides $VISUAL and $EDITOR for file editing.
 	// Supports binary with arguments (e.g., "code --wait").
-	// Resolution order: Editor > $EDITOR > "vi".
+	// Resolution order: Editor > chezmoi edit.command > $VISUAL > $EDITOR > "vi".
 	Editor string
+
+	// EditConfig is chezmoi's resolved edit.command and edit.args, so direct
+	// editor launches open the same editor as `chezmoi edit`.
+	EditConfig chezmoi.EditConfig
 
 	// PanelMode controls default panel visibility: "auto" (default), "show", "hide".
 	// "auto" shows when terminal >= 110 columns, "show" always shows, "hide" never shows.
