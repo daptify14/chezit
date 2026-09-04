@@ -1,6 +1,8 @@
 icons: nerdfont
 panel: show
 mode: write
+editor: code --wait
+auto_fetch: true
 commit_presets:
   - "feat: update dotfiles"
   - "fix: correct config"
