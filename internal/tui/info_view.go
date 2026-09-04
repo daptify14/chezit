@@ -120,7 +120,7 @@ func (m Model) renderInfoStatusBar() string {
 	if m.info.activeView == infoViewFull || m.info.activeView == infoViewData {
 		helpText += " | f format"
 	}
-	helpText += " | r refresh | tab switch | ? keys | esc quit"
+	helpText += " | r refresh | tab switch | ? keys | esc back"
 	help := m.helpHint(helpText)
 	return statusBar + "\n" + help
 }
