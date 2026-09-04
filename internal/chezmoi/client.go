@@ -15,12 +15,17 @@ import (
 	"time"
 )
 
+// DefaultFetchTimeout bounds `git fetch` separately from Timeout. A hung
+// remote must not hold the freshness indicator for the full command timeout.
+const DefaultFetchTimeout = 10 * time.Second
+
 // Client wraps the chezmoi CLI binary.
 type Client struct {
-	Timeout    time.Duration
-	BinaryPath string
-	ConfigPath string
-	Editor     string
+	Timeout      time.Duration
+	FetchTimeout time.Duration
+	BinaryPath   string
+	ConfigPath   string
+	Editor       string
 }
 
 type Option func(*Client)
@@ -28,6 +33,13 @@ type Option func(*Client)
 func WithTimeout(d time.Duration) Option {
 	return func(c *Client) {
 		c.Timeout = d
+	}
+}
+
+// WithFetchTimeout bounds GitFetch. Non-positive values keep the default.
+func WithFetchTimeout(d time.Duration) Option {
+	return func(c *Client) {
+		c.FetchTimeout = d
 	}
 }
 
@@ -52,8 +64,9 @@ func WithEditor(editor string) Option {
 
 func New(opts ...Option) *Client {
 	c := &Client{
-		Timeout:    30 * time.Second,
-		BinaryPath: "chezmoi",
+		Timeout:      30 * time.Second,
+		FetchTimeout: DefaultFetchTimeout,
+		BinaryPath:   "chezmoi",
 	}
 	for _, opt := range opts {
 		if opt != nil {
@@ -62,6 +75,9 @@ func New(opts ...Option) *Client {
 	}
 	if c.BinaryPath == "" {
 		c.BinaryPath = "chezmoi"
+	}
+	if c.FetchTimeout <= 0 {
+		c.FetchTimeout = DefaultFetchTimeout
 	}
 	return c
 }
@@ -100,18 +116,48 @@ func (c *Client) command(args ...string) *exec.Cmd {
 	return exec.Command(c.binary(), allArgs...)
 }
 
-func (c *Client) cmd(args ...string) (*exec.Cmd, context.CancelFunc) {
+// runOptions tunes a single non-interactive command.
+type runOptions struct {
+	timeout  time.Duration
+	extraEnv []string // appended to os.Environ(); nil inherits unchanged
+	// detach runs in a new session (no /dev/tty) and kills the whole process
+	// group on timeout; see detachProcess.
+	detach bool
+}
+
+// newCmd builds a non-interactive chezmoi command bound to ctx.
+func (c *Client) newCmd(ctx context.Context, opts runOptions, args ...string) *exec.Cmd {
 	allArgs := append(c.baseFlags(), args...)
-	ctx, cancel := context.WithTimeout(context.Background(), c.Timeout)
 	cmd := exec.CommandContext(ctx, c.binary(), allArgs...)
 	cmd.Stdin = nil
-	return cmd, cancel
+	if len(opts.extraEnv) > 0 {
+		cmd.Env = append(os.Environ(), opts.extraEnv...)
+	}
+	if opts.detach {
+		detachProcess(cmd)
+	}
+	return cmd
+}
+
+func (c *Client) cmd(args ...string) (*exec.Cmd, context.CancelFunc) {
+	ctx, cancel := context.WithTimeout(context.Background(), c.Timeout)
+	return c.newCmd(ctx, runOptions{}, args...), cancel
 }
 
 func (c *Client) run(args ...string) ([]byte, error) {
-	cmd, cancel := c.cmd(args...)
+	return c.runWith(runOptions{timeout: c.Timeout}, args...)
+}
+
+// runWith executes a non-interactive chezmoi command with explicit options;
+// a fired deadline wraps context.DeadlineExceeded.
+func (c *Client) runWith(opts runOptions, args ...string) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), opts.timeout)
 	defer cancel()
-	return cmd.CombinedOutput()
+	output, err := c.newCmd(ctx, opts, args...).CombinedOutput()
+	if err != nil && ctx.Err() != nil {
+		return output, fmt.Errorf("%w: %w", ctx.Err(), err)
+	}
+	return output, err
 }
 
 func IsAvailable() bool {
@@ -638,12 +684,73 @@ func (c *Client) GitLogIncoming() (string, error) {
 	return string(output), nil
 }
 
+// Fetch failure markers, lowercase. This is the one deliberate English-string
+// match in the client: classification only picks the label the TUI shows, and
+// every branch of GitFetch is non-fatal regardless of which marker hit.
+//
+// Auth is checked first: ssh prints "Permission denied" *and* "Could not read
+// from remote repository" on an auth failure, so auth must win over unreachable.
+var fetchAuthMarkers = []string{
+	"permission denied",
+	"authentication failed",
+	"host key verification failed",
+	"could not read username",
+	"could not read password",
+	"invalid username or password",
+	"terminal prompts disabled",
+	"http basic: access denied",
+	"returned error: 401",
+	"returned error: 403",
+}
+
+var fetchUnreachableMarkers = []string{
+	"could not resolve host",
+	"unable to access",
+	"connection refused",
+	"connection timed out",
+	"operation timed out",
+	"network is unreachable",
+	"no route to host",
+	"connection reset",
+	"ssh: connect to host",
+	"failed to connect",
+	"temporary failure in name resolution",
+	"could not read from remote repository",
+	"the remote end hung up",
+}
+
+// fetchEnv keeps a background fetch non-interactive: no terminal prompt, no
+// git askpass helper (VS Code's terminal exports one), no ssh askpass.
+// Credential helpers still run, so stored credentials keep working.
+var fetchEnv = []string{
+	"GIT_TERMINAL_PROMPT=0",
+	"GIT_ASKPASS=/bin/false",
+	"SSH_ASKPASS_REQUIRE=never",
+}
+
+// GitFetch updates remote-tracking refs under FetchTimeout with prompts
+// disabled; failures wrap ErrFetchTimeout, ErrFetchAuth, or ErrFetchUnreachable.
 func (c *Client) GitFetch() error {
-	output, err := c.run("git", "--", "fetch")
-	if err != nil {
-		return fmt.Errorf("chezmoi git fetch: %s: %w", strings.TrimSpace(string(output)), err)
+	opts := runOptions{
+		timeout:  c.FetchTimeout,
+		extraEnv: fetchEnv,
+		detach:   true,
 	}
-	return nil
+	output, err := c.runWith(opts, "git", "--", "fetch", "--quiet")
+	if err == nil {
+		return nil
+	}
+	out := strings.TrimSpace(string(output))
+	switch {
+	case errors.Is(err, context.DeadlineExceeded):
+		return fmt.Errorf("%w after %s", ErrFetchTimeout, c.FetchTimeout)
+	case containsAnyFold(out, fetchAuthMarkers):
+		return fmt.Errorf("%w: %s", ErrFetchAuth, out)
+	case containsAnyFold(out, fetchUnreachableMarkers):
+		return fmt.Errorf("%w: %s", ErrFetchUnreachable, out)
+	default:
+		return fmt.Errorf("chezmoi git fetch: %s: %w", out, err)
+	}
 }
 
 // isValidGitHash checks that s is a plausible abbreviated or full git

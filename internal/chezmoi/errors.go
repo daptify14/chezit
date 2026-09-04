@@ -10,3 +10,11 @@ var (
 	ErrPathNotAbs    = errors.New("path must be absolute")
 	ErrInvalidHash   = errors.New("invalid git commit hash")
 )
+
+// Fetch failure classes. GitFetch wraps git's output around one of these so
+// callers can render a short reason with errors.Is instead of parsing text.
+var (
+	ErrFetchTimeout     = errors.New("git fetch timed out")
+	ErrFetchUnreachable = errors.New("remote unreachable")
+	ErrFetchAuth        = errors.New("remote authentication failed")
+)
