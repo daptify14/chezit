@@ -24,7 +24,7 @@ brew install daptify14/tap/chezit
 
 ### Pre-built binaries
 
-Download from [GitHub Releases](https://github.com/daptify14/chezit/releases) (macOS and Linux, arm64 and amd64).
+Download from [GitHub Releases](https://github.com/daptify14/chezit/releases) (macOS, Linux and Windows, arm64 and amd64).
 
 ### From source
 
